@@ -30,6 +30,40 @@ function AuthShell({ title, subtitle, children, footer }: { title: string; subti
   );
 }
 
+function GoogleButton({ onDone, onError }: { onDone: () => void; onError: (code: string) => void }) {
+  const { signInWithGoogle } = useAuth();
+  const [busy, setBusy] = useState(false);
+  const click = async () => {
+    setBusy(true);
+    try {
+      if (await signInWithGoogle()) onDone();
+    } catch (err) {
+      onError((err as { code?: string }).code ?? '');
+    } finally {
+      setBusy(false);
+    }
+  };
+  return (
+    <>
+      <button type="button" className="btn-secondary w-full gap-2.5" onClick={() => void click()} disabled={busy}>
+        {busy ? (
+          <Spinner />
+        ) : (
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+            <path d="M21.35 11.1h-9.17v2.73h6.51c-.33 3.81-3.5 5.44-6.5 5.44C8.36 19.27 5 16.25 5 12c0-4.1 3.2-7.27 7.2-7.27 3.09 0 4.9 1.97 4.9 1.97L19 4.72S16.56 2 12.1 2C6.42 2 2.03 6.8 2.03 12c0 5.05 4.13 10 10.22 10 5.35 0 9.25-3.67 9.25-9.09 0-1.15-.15-1.81-.15-1.81z" />
+          </svg>
+        )}
+        Continue with Google
+      </button>
+      <div className="my-5 flex items-center gap-3 text-xs text-ink-400">
+        <span className="h-px flex-1 bg-ink-600" />
+        or
+        <span className="h-px flex-1 bg-ink-600" />
+      </div>
+    </>
+  );
+}
+
 function ConfigWarning() {
   if (isConfigured) return null;
   return (
@@ -71,6 +105,13 @@ export function LoginPage() {
       footer={<>New to Airtrohp? <Link to="/register" className="text-ink-50 underline underline-offset-4">Create an account</Link></>}
     >
       <ConfigWarning />
+      <GoogleButton
+        onDone={() => {
+          const next = params.get('next');
+          nav(next && next.startsWith('/') && !next.startsWith('//') ? next : '/chat', { replace: true });
+        }}
+        onError={(code) => setError(friendlyAuthError(code))}
+      />
       <form onSubmit={submit} className="space-y-4">
         <div>
           <label className="label" htmlFor="email">Email</label>
@@ -125,6 +166,7 @@ export function RegisterPage() {
       footer={<>Already registered? <Link to="/login" className="text-ink-50 underline underline-offset-4">Log in</Link></>}
     >
       <ConfigWarning />
+      <GoogleButton onDone={() => nav('/chat', { replace: true })} onError={(code) => setError(friendlyAuthError(code))} />
       <form onSubmit={submit} className="space-y-4">
         <div>
           <label className="label" htmlFor="name">Name</label>

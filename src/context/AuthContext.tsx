@@ -1,10 +1,12 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import {
   createUserWithEmailAndPassword,
+  GoogleAuthProvider,
   onAuthStateChanged,
   sendEmailVerification,
   sendPasswordResetEmail,
   signInWithEmailAndPassword,
+  signInWithPopup,
   signOut as fbSignOut,
   updateProfile,
   type User,
@@ -22,6 +24,8 @@ interface AuthState {
   meError: string | null;
   signUp: (email: string, password: string, name: string) => Promise<void>;
   signIn: (email: string, password: string) => Promise<void>;
+  /** Opens the Google popup. Resolves to false when the user simply closed it. */
+  signInWithGoogle: () => Promise<boolean>;
   signOut: () => Promise<void>;
   resetPassword: (email: string) => Promise<void>;
   resendVerification: () => Promise<void>;
@@ -85,6 +89,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       },
       async signIn(email, password) {
         await signInWithEmailAndPassword(auth, email, password);
+      },
+      async signInWithGoogle() {
+        const provider = new GoogleAuthProvider();
+        provider.setCustomParameters({ prompt: 'select_account' });
+        try {
+          await signInWithPopup(auth, provider);
+          return true;
+        } catch (e) {
+          const code = (e as { code?: string }).code;
+          if (code === 'auth/popup-closed-by-user' || code === 'auth/cancelled-popup-request') return false;
+          throw e;
+        }
       },
       async signOut() {
         await fbSignOut(auth);

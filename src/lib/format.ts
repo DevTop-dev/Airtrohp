@@ -55,6 +55,14 @@ export function friendlyAuthError(code: string): string {
       return 'This account has been disabled.';
     case 'auth/network-request-failed':
       return 'Network error. Check your connection and try again.';
+    case 'auth/popup-blocked':
+      return 'Your browser blocked the Google sign-in window. Allow pop-ups for this site and try again.';
+    case 'auth/unauthorized-domain':
+      return 'This domain is not authorised for Google sign-in yet. Add it in Firebase Authentication, Settings, Authorized domains.';
+    case 'auth/operation-not-allowed':
+      return 'Google sign-in is not enabled yet. Enable the Google provider in Firebase Authentication.';
+    case 'auth/account-exists-with-different-credential':
+      return 'An account with this email already exists. Log in with your password instead.';
     case 'auth/requires-recent-login':
       return 'Please sign in again to do that.';
     default:
