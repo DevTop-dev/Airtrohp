@@ -44,6 +44,8 @@ export interface Env {
   ALLOWED_ORIGINS: string; // comma separated
   GEMINI_MODEL?: string;
   GEMINI_MODEL_PRO?: string;
+  /** Used when the primary model is overloaded (HTTP 429/500/503/504). */
+  GEMINI_MODEL_FALLBACK?: string;
   GUEST_MESSAGE_LIMIT?: string;
   GUEST_IP_DAILY_LIMIT?: string;
   RATE_LIMIT_PER_MINUTE?: string;

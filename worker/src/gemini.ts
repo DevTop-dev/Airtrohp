@@ -123,3 +123,31 @@ export function parseGeminiEvent(data: string): GeminiChunk | null {
     outputTokens: j.usageMetadata?.candidatesTokenCount,
   };
 }
+
+const RETRYABLE = new Set([429, 500, 503, 504]);
+
+/**
+ * Calls Gemini, retrying once on a transient overload and then falling back to a second model.
+ * Only runs before any bytes are streamed to the client, so it is safe to repeat.
+ */
+export async function callGeminiResilient(
+  env: Env,
+  fetcher: typeof fetch,
+  models: string[],
+  body: unknown,
+  signal?: AbortSignal,
+  sleep: (ms: number) => Promise<void> = (ms) => new Promise((r) => setTimeout(r, ms)),
+): Promise<Response> {
+  const unique = models.filter((m, i) => m && models.indexOf(m) === i);
+  let last: Response | undefined;
+  for (const model of unique) {
+    for (let attempt = 0; attempt < 2; attempt++) {
+      if (signal?.aborted) throw new Error('aborted');
+      if (last) await last.body?.cancel().catch(() => undefined);
+      last = await callGemini(env, fetcher, model, body, signal);
+      if (last.ok || !RETRYABLE.has(last.status)) return last;
+      if (attempt === 0) await sleep(700);
+    }
+  }
+  return last as Response;
+}

@@ -14,6 +14,7 @@ FRONTEND_URL = "https://airtrohp.vercel.app"
 
 GEMINI_MODEL = "gemini-flash-latest"
 GEMINI_MODEL_PRO = "gemini-pro-latest"
+GEMINI_MODEL_FALLBACK = "gemini-flash-lite-latest"
 
 GUEST_MESSAGE_LIMIT = "5"
 GUEST_IP_DAILY_LIMIT = "15"

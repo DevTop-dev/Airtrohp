@@ -3,7 +3,7 @@ import { authenticate, type Principal } from './auth';
 import { GUEST_MAX_CONTEXT_CHARS, getTiers, guestIpDailyLimit, guestLimit, rateLimitPerMinute, type TierConfig } from './config';
 import {
   buildGeminiBody,
-  callGemini,
+  callGeminiResilient,
   chatInputSize,
   modelFor,
   parseGeminiEvent,
@@ -175,7 +175,13 @@ export async function handleChat(request: Request, env: Env, ctx: Ctx, deps: Cha
   const controller = new AbortController();
   let upstream: Response;
   try {
-    upstream = await callGemini(env, deps.fetch, modelFor(env, tier), buildGeminiBody(input), controller.signal);
+    upstream = await callGeminiResilient(
+      env,
+      deps.fetch,
+      [modelFor(env, tier), env.GEMINI_MODEL_FALLBACK ?? 'gemini-flash-lite-latest'],
+      buildGeminiBody(input),
+      controller.signal,
+    );
   } catch (e) {
     await refund();
     console.error('Gemini fetch failed', e);
