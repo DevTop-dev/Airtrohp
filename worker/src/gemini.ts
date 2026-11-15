@@ -83,7 +83,7 @@ export function buildGeminiBody(input: ChatInput) {
 }
 
 export function modelFor(env: Env, tier: Pick<TierConfig, 'model'>): string {
-  return tier.model === 'advanced' ? (env.GEMINI_MODEL_PRO ?? 'gemini-2.5-pro') : (env.GEMINI_MODEL ?? 'gemini-2.5-flash');
+  return tier.model === 'advanced' ? (env.GEMINI_MODEL_PRO ?? 'gemini-pro-latest') : (env.GEMINI_MODEL ?? 'gemini-flash-latest');
 }
 
 export async function callGemini(env: Env, fetcher: typeof fetch, model: string, body: unknown, signal?: AbortSignal) {

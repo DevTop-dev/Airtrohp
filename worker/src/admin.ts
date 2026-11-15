@@ -36,7 +36,7 @@ export async function adminStatus(env: Env, store: Store) {
       patreonCampaignConfigured: !!env.PATREON_CAMPAIGN_ID,
       adminConfigured: !!(env.ADMIN_UIDS || env.ADMIN_EMAILS),
     },
-    models: { standard: env.GEMINI_MODEL ?? 'gemini-2.5-flash', advanced: env.GEMINI_MODEL_PRO ?? 'gemini-2.5-pro' },
+    models: { standard: env.GEMINI_MODEL ?? 'gemini-flash-latest', advanced: env.GEMINI_MODEL_PRO ?? 'gemini-pro-latest' },
   };
 }
 
