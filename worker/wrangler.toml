@@ -1,0 +1,40 @@
+name = "airtrohp-api"
+main = "src/index.ts"
+compatibility_date = "2025-01-15"
+
+# ---------------------------------------------------------------------------
+# Plain (non-secret) configuration. Edit these for your deployment.
+# Secrets (GEMINI_API_KEY etc.) are NOT stored here: see README.md.
+# ---------------------------------------------------------------------------
+[vars]
+FIREBASE_PROJECT_ID = "your-firebase-project-id"
+# Your Vercel URL(s), comma separated, no trailing slash. Add http://localhost:5173 for local dev.
+ALLOWED_ORIGINS = "https://your-app.vercel.app,http://localhost:5173"
+FRONTEND_URL = "https://your-app.vercel.app"
+
+GEMINI_MODEL = "gemini-2.5-flash"
+GEMINI_MODEL_PRO = "gemini-2.5-pro"
+
+GUEST_MESSAGE_LIMIT = "5"
+GUEST_IP_DAILY_LIMIT = "15"
+RATE_LIMIT_PER_MINUTE = "12"
+
+# Patreon (fill in after creating your Patreon client; see README)
+PATREON_CAMPAIGN_ID = ""
+PATREON_PRO_TIER_ID = ""
+PATREON_ULTIMATE_TIER_ID = ""
+PATREON_REDIRECT_URI = "https://airtrohp-api.<your-subdomain>.workers.dev/api/patreon/callback"
+PATREON_JOIN_URL = "https://www.patreon.com/your-page"
+
+# Ultimate tier is prepared but off until you create the Patreon tier. Prices and limits can be
+# overridden without code changes, e.g.:
+# TIER_CONFIG = '{"ultimate":{"priceUsd":19.99,"dailyMessages":1500}}'
+ENABLE_ULTIMATE = "false"
+
+[[durable_objects.bindings]]
+name = "USAGE"
+class_name = "UsageCounter"
+
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["UsageCounter"]

@@ -1,0 +1,87 @@
+rules_version = '2';
+
+// Airtrohp Firestore security rules.
+//
+// Principles
+//  * A signed-in, email-verified user can only touch documents under /users/{their uid}.
+//  * Plan/membership, usage counters, Patreon links and tokens, and admin statistics are written ONLY by the
+//    Cloudflare Worker through a service account (service accounts bypass these rules), so the client can never
+//    grant itself Pro, raise a quota or read another user's data.
+//  * Guests (not signed in) have no Firestore access at all. Their five free messages are stored in the browser
+//    and counted by the Worker.
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function signedIn() { return request.auth != null; }
+    function isOwner(uid) { return signedIn() && request.auth.uid == uid; }
+    function verified() { return request.auth.token.email_verified == true; }
+
+    function validConversation(d) {
+      return d.keys().hasOnly(['title', 'createdAt', 'updatedAt', 'projectId'])
+        && d.title is string && d.title.size() > 0 && d.title.size() <= 120
+        && d.createdAt is number && d.updatedAt is number
+        && (!('projectId' in d) || d.projectId == null || (d.projectId is string && d.projectId.size() <= 64));
+    }
+
+    function validMessage(d) {
+      return d.keys().hasOnly(['role', 'content', 'files', 'createdAt', 'error'])
+        && d.role in ['user', 'model']
+        && d.content is string && d.content.size() <= 300000
+        && d.createdAt is number
+        && (!('files' in d) || (d.files is list && d.files.size() <= 60))
+        && (!('error' in d) || d.error is string);
+    }
+
+    function validProject(d) {
+      return d.keys().hasOnly(['name', 'createdAt', 'updatedAt', 'fileCount'])
+        && d.name is string && d.name.size() > 0 && d.name.size() <= 80
+        && d.createdAt is number && d.updatedAt is number && d.fileCount is number;
+    }
+
+    function validProjectFile(d) {
+      return d.keys().hasOnly(['path', 'content', 'size', 'updatedAt'])
+        && d.path is string && d.path.size() > 0 && d.path.size() <= 240
+        && d.content is string && d.content.size() <= 300000
+        && d.size is number && d.updatedAt is number;
+    }
+
+    match /users/{uid} {
+      // The profile document is created and managed by the Worker (membership lives in it).
+      allow read: if isOwner(uid);
+      allow create, delete: if false;
+      // The client may only change its own display name and preferences, never membership, email or flags.
+      allow update: if isOwner(uid)
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['displayName', 'preferences'])
+        && (!('displayName' in request.resource.data.diff(resource.data).affectedKeys())
+            || (request.resource.data.displayName is string && request.resource.data.displayName.size() <= 60))
+        && (!('preferences' in request.resource.data.diff(resource.data).affectedKeys())
+            || request.resource.data.preferences is map);
+
+      match /conversations/{cid} {
+        allow read, delete: if isOwner(uid) && verified();
+        allow create, update: if isOwner(uid) && verified() && validConversation(request.resource.data);
+
+        match /messages/{mid} {
+          allow read, delete: if isOwner(uid) && verified();
+          allow create, update: if isOwner(uid) && verified() && validMessage(request.resource.data);
+        }
+      }
+
+      match /projects/{pid} {
+        allow read, delete: if isOwner(uid) && verified();
+        allow create, update: if isOwner(uid) && verified() && validProject(request.resource.data);
+
+        match /files/{fid} {
+          allow read, delete: if isOwner(uid) && verified();
+          allow create, update: if isOwner(uid) && verified() && validProjectFile(request.resource.data);
+        }
+      }
+    }
+
+    // Server-only collections: usage_daily, stats, stats_daily, patreon_links, private_tokens.
+    // No client rule exists for them, so every client read and write is denied.
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

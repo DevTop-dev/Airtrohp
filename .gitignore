@@ -1,0 +1,15 @@
+node_modules
+dist
+.env
+.env.*
+!.env.example
+.dev.vars
+worker/.dev.vars
+!worker/.dev.vars.example
+.wrangler
+*.log
+.DS_Store
+.vercel
+.firebase
+serviceAccount*.json
+*-firebase-adminsdk-*.json

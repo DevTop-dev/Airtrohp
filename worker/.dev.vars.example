@@ -1,0 +1,8 @@
+# Copy to worker/.dev.vars for `wrangler dev`. This file is git-ignored. Placeholder values only.
+GEMINI_API_KEY=your-gemini-api-key
+FIREBASE_SERVICE_ACCOUNT={"type":"service_account","project_id":"your-project-id","private_key":"-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----\n","client_email":"firebase-adminsdk-xxxxx@your-project-id.iam.gserviceaccount.com"}
+APP_SECRET=replace-with-at-least-32-random-characters
+ADMIN_UIDS=your-firebase-uid
+PATREON_CLIENT_ID=
+PATREON_CLIENT_SECRET=
+PATREON_WEBHOOK_SECRET=

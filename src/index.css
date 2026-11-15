@@ -1,0 +1,244 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --devtop-h: 46px;
+  color-scheme: dark;
+}
+
+html,
+body,
+#root {
+  min-height: 100%;
+}
+
+body {
+  @apply bg-ink-950 font-sans text-ink-100 antialiased;
+  padding-bottom: var(--devtop-h); /* reserved strip for the fixed "powered by DevTop" bar */
+  text-rendering: optimizeLegibility;
+}
+
+/* App screens fill the viewport minus the DevTop strip */
+.app-h {
+  height: calc(100vh - var(--devtop-h));
+  height: calc(100dvh - var(--devtop-h));
+}
+
+::selection {
+  background: #f4f4f4;
+  color: #050505;
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #2a2a2a transparent;
+}
+*::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+*::-webkit-scrollbar-thumb {
+  background: #2a2a2a;
+  border-radius: 8px;
+}
+*::-webkit-scrollbar-thumb:hover {
+  background: #3a3a3a;
+}
+
+:focus-visible {
+  outline: 1px solid #b5b5b5;
+  outline-offset: 2px;
+}
+
+@layer components {
+  .btn {
+    @apply inline-flex select-none items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-medium transition duration-200 disabled:cursor-not-allowed disabled:opacity-40;
+  }
+  .btn-primary {
+    @apply btn bg-ink-50 text-ink-950 hover:bg-white active:scale-[0.99];
+  }
+  .btn-secondary {
+    @apply btn border border-ink-600 bg-ink-800 text-ink-50 hover:border-ink-500 hover:bg-ink-700;
+  }
+  .btn-ghost {
+    @apply btn text-ink-200 hover:bg-ink-800 hover:text-ink-50;
+  }
+  .btn-danger {
+    @apply btn border border-ink-500 text-ink-100 hover:border-ink-100 hover:bg-ink-100 hover:text-ink-950;
+  }
+  .btn-sm {
+    @apply px-3 py-1.5 text-xs;
+  }
+  .input {
+    @apply w-full rounded-lg border border-ink-600 bg-ink-900 px-3.5 py-2.5 text-sm text-ink-50 placeholder-ink-400 transition focus:border-ink-300 focus:outline-none;
+  }
+  .label {
+    @apply mb-1.5 block text-xs font-medium uppercase tracking-wider text-ink-300;
+  }
+  .card {
+    @apply rounded-2xl border border-ink-700 bg-ink-850 shadow-soft;
+  }
+  .eyebrow {
+    @apply text-[11px] font-medium uppercase tracking-[0.22em] text-ink-300;
+  }
+  .hairline {
+    @apply border-ink-700;
+  }
+}
+
+/* Subtle animated grain-free backdrop for hero */
+.bg-grid {
+  background-image: linear-gradient(to right, rgba(255, 255, 255, 0.035) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.035) 1px, transparent 1px);
+  background-size: 56px 56px;
+  mask-image: radial-gradient(ellipse at 50% 0%, #000 30%, transparent 75%);
+  -webkit-mask-image: radial-gradient(ellipse at 50% 0%, #000 30%, transparent 75%);
+}
+.text-shine {
+  background: linear-gradient(110deg, #8a8a8a 20%, #ffffff 45%, #8a8a8a 70%);
+  background-size: 200% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: sheen 6s linear infinite;
+}
+
+/* ---------- Markdown ---------- */
+.prose-air {
+  @apply text-[15px] leading-7 text-ink-100;
+}
+.prose-air > :first-child {
+  margin-top: 0;
+}
+.prose-air > :last-child {
+  margin-bottom: 0;
+}
+.prose-air p {
+  @apply my-3;
+}
+.prose-air h1,
+.prose-air h2,
+.prose-air h3,
+.prose-air h4 {
+  @apply mb-2 mt-6 font-semibold text-ink-50;
+}
+.prose-air h1 {
+  @apply text-xl;
+}
+.prose-air h2 {
+  @apply text-lg;
+}
+.prose-air h3 {
+  @apply text-base;
+}
+.prose-air ul {
+  @apply my-3 list-disc pl-6;
+}
+.prose-air ol {
+  @apply my-3 list-decimal pl-6;
+}
+.prose-air li {
+  @apply my-1;
+}
+.prose-air a {
+  @apply text-ink-50 underline decoration-ink-400 underline-offset-4 hover:decoration-ink-50;
+}
+.prose-air blockquote {
+  @apply my-4 border-l-2 border-ink-500 pl-4 text-ink-200;
+}
+.prose-air hr {
+  @apply my-6 border-ink-700;
+}
+.prose-air :not(pre) > code {
+  @apply rounded-md border border-ink-600 bg-ink-800 px-1.5 py-0.5 font-mono text-[13px] text-ink-50;
+}
+.prose-air table {
+  @apply my-4 w-full border-collapse text-sm;
+}
+.prose-air th,
+.prose-air td {
+  @apply border border-ink-600 px-3 py-2 text-left align-top;
+}
+.prose-air th {
+  @apply bg-ink-800 font-medium text-ink-50;
+}
+
+/* ---------- Monochrome syntax highlighting (no colors, only tone and style) ---------- */
+.hljs {
+  color: #dcdcdc;
+  background: transparent;
+}
+.hljs-comment,
+.hljs-quote {
+  color: #6b6b6b;
+  font-style: italic;
+}
+.hljs-keyword,
+.hljs-selector-tag,
+.hljs-literal,
+.hljs-doctag,
+.hljs-meta .hljs-keyword {
+  color: #ffffff;
+  font-weight: 600;
+}
+.hljs-string,
+.hljs-regexp,
+.hljs-addition,
+.hljs-template-variable,
+.hljs-attr,
+.hljs-symbol,
+.hljs-bullet {
+  color: #b5b5b5;
+}
+.hljs-number,
+.hljs-built_in,
+.hljs-type,
+.hljs-variable,
+.hljs-params {
+  color: #ededed;
+}
+.hljs-title,
+.hljs-title.function_,
+.hljs-title.class_,
+.hljs-section,
+.hljs-name,
+.hljs-selector-id,
+.hljs-selector-class {
+  color: #ffffff;
+  text-decoration: underline;
+  text-decoration-color: #3a3a3a;
+  text-underline-offset: 3px;
+}
+.hljs-meta,
+.hljs-tag,
+.hljs-punctuation {
+  color: #8a8a8a;
+}
+.hljs-deletion {
+  color: #8a8a8a;
+  text-decoration: line-through;
+}
+.hljs-emphasis {
+  font-style: italic;
+}
+.hljs-strong {
+  font-weight: 700;
+}
+
+/* ---------- powered by DevTop bar ---------- */
+#devtopBar { position: fixed; left: 50%; bottom: 10px; transform: translateX(-50%); z-index: 300; display: flex; align-items: center; gap: 4px; padding: 5px 6px 5px 14px; border-radius: 999px; background: #0a0a0a; color: #f5f5f5; font-size: 12px; box-shadow: 0 4px 18px rgba(0,0,0,.25); border: 1px solid #2a2a2a; white-space: nowrap; max-width: calc(100vw - 24px); }
+#devtopBar b { font-weight: 700; letter-spacing: .02em; margin-right: 6px; }
+#devtopBar a, #devtopBar button { font: inherit; color: #f5f5f5; background: transparent; border: 1px solid #3a3a3a; border-radius: 999px; padding: 4px 11px; cursor: pointer; text-decoration: none; }
+#devtopBar a:hover, #devtopBar button:hover { background: #f5f5f5; color: #0a0a0a; }
+@media (max-width: 480px) { #devtopBar { font-size: 11px; padding-left: 10px; } #devtopBar a, #devtopBar button { padding: 4px 9px; } }
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
