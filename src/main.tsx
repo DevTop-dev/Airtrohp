@@ -1,19 +1,23 @@
-import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
-import { BrowserRouter } from 'react-router-dom';
-import App from './App';
-import { AuthProvider } from './context/AuthContext';
-import { ToastProvider } from './context/ToastContext';
+import ConfigError from './ConfigError';
+import { missingEnv } from './lib/config';
 import './index.css';
 
-createRoot(document.getElementById('root') as HTMLElement).render(
-  <StrictMode>
-    <BrowserRouter>
-      <ToastProvider>
-        <AuthProvider>
-          <App />
-        </AuthProvider>
-      </ToastProvider>
-    </BrowserRouter>
-  </StrictMode>,
-);
+// Firebase throws at import time when its config is empty, so the app is only loaded
+// (dynamically) once the required variables are present. Otherwise show a readable message.
+async function start() {
+  const root = createRoot(document.getElementById('root') as HTMLElement);
+  const missing = missingEnv();
+  if (missing.length) {
+    root.render(<ConfigError missing={missing} />);
+    return;
+  }
+  try {
+    const { default: Boot } = await import('./boot');
+    root.render(<Boot />);
+  } catch (e) {
+    root.render(<ConfigError error={e instanceof Error ? e.message : String(e)} />);
+  }
+}
+
+void start();

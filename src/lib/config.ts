@@ -13,6 +13,18 @@ export const firebaseConfig = {
 
 export const isConfigured = Boolean(API_URL && firebaseConfig.apiKey && firebaseConfig.projectId);
 
+/** Names of required build-time variables that are empty. Vite inlines them at build time, so a redeploy is needed after changing them. */
+export function missingEnv(): string[] {
+  const required: Array<[string, string | undefined]> = [
+    ['VITE_API_URL', API_URL],
+    ['VITE_FIREBASE_API_KEY', firebaseConfig.apiKey],
+    ['VITE_FIREBASE_AUTH_DOMAIN', firebaseConfig.authDomain],
+    ['VITE_FIREBASE_PROJECT_ID', firebaseConfig.projectId],
+    ['VITE_FIREBASE_APP_ID', firebaseConfig.appId],
+  ];
+  return required.filter(([, v]) => !v).map(([k]) => k);
+}
+
 /** Characters of attachments allowed on a single message (client side; the Worker enforces plan limits). */
 export const MAX_ATTACH_CHARS = 250_000;
 export const MAX_FILE_CHARS = 150_000;
