@@ -186,7 +186,19 @@ export async function handleChat(request: Request, env: Env, ctx: Ctx, deps: Cha
     const detail = (await upstream.text().catch(() => '')).slice(0, 300);
     console.error('Gemini error', upstream.status, detail);
     const status = upstream.status === 429 ? 503 : 502;
-    throw new HttpError(status, 'AI_UPSTREAM_ERROR', 'The AI service is busy or unavailable. Please try again shortly.');
+    // Google's error enum (e.g. PERMISSION_DENIED, NOT_FOUND) is not secret and makes setup problems diagnosable.
+    let reason = '';
+    try {
+      const g = (JSON.parse(detail) as { error?: { status?: unknown } }).error?.status;
+      if (typeof g === 'string' && /^[A-Z_]{3,40}$/.test(g)) reason = `, ${g}`;
+    } catch {
+      /* detail was truncated or not JSON */
+    }
+    throw new HttpError(
+      status,
+      'AI_UPSTREAM_ERROR',
+      `The AI service is busy or unavailable. Please try again shortly. (upstream ${upstream.status}${reason})`,
+    );
   }
 
   // 6. Re-stream as our own SSE protocol
