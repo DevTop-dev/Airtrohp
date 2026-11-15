@@ -6,6 +6,7 @@
   "description": "Airtrohp API: Gemini proxy, guest limits, Firebase token verification, Patreon, admin",
   "scripts": {
     "dev": "wrangler dev",
+    "build": "echo No build step: wrangler bundles the Worker on deploy",
     "deploy": "wrangler deploy",
     "typecheck": "tsc -p tsconfig.json",
     "test": "tsx test/run.ts"
