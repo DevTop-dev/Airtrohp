@@ -112,7 +112,7 @@ npx wrangler login
    ```bash
    npx wrangler deploy
    ```
-   Wrangler prints the URL, e.g. `https://airtrohp-api.<subdomain>.workers.dev`. Open `<url>/api/health`; you should see `{"ok":true,...}`.
+   Wrangler prints the URL, e.g. `https://airtrohp.<subdomain>.workers.dev`. Open `<url>/api/health`; you should see `{"ok":true,...}`.
 4. The Durable Object (`UsageCounter`) is created automatically by the migration in `wrangler.toml` (SQLite-backed, available on the free plan).
 5. Put that URL into Vercel as `VITE_API_URL` (section 4) and into `PATREON_REDIRECT_URI` in `wrangler.toml` (`<url>/api/patreon/callback`), then redeploy the Worker.
 
@@ -156,7 +156,7 @@ Billing is optional. Until configured, the dashboard shows that billing is unava
 
 1. Create a Patreon creator page with a tier priced **$9.99/month** (Airtrohp Pro).
 2. https://www.patreon.com/portal/registration/register-clients → **Create client**.
-   - **Redirect URIs:** `https://airtrohp-api.<subdomain>.workers.dev/api/patreon/callback`
+   - **Redirect URIs:** `https://airtrohp.<subdomain>.workers.dev/api/patreon/callback`
    - Copy **Client ID** and **Client Secret** → `wrangler secret put PATREON_CLIENT_ID` / `PATREON_CLIENT_SECRET`.
 3. Find your campaign and tier IDs using the **Creator's Access Token** shown on the client page:
    ```bash
@@ -164,7 +164,7 @@ Billing is optional. Until configured, the dashboard shows that billing is unava
    curl -H "Authorization: Bearer <CREATOR_ACCESS_TOKEN>" "https://www.patreon.com/api/oauth2/v2/campaigns/<CAMPAIGN_ID>?include=tiers&fields%5Btier%5D=title,amount_cents"
    ```
    Put `PATREON_CAMPAIGN_ID` and `PATREON_PRO_TIER_ID` in `wrangler.toml`. Set `PATREON_JOIN_URL` to your public Patreon page (used by the "Upgrade on Patreon" button).
-4. **Webhook:** Patreon developer portal → Webhooks → Create. URI `https://airtrohp-api.<subdomain>.workers.dev/api/patreon/webhook`; triggers `members:pledge:create`, `members:pledge:update`, `members:pledge:delete` (and `members:create/update/delete` if offered). Copy the webhook secret → `wrangler secret put PATREON_WEBHOOK_SECRET`.
+4. **Webhook:** Patreon developer portal → Webhooks → Create. URI `https://airtrohp.<subdomain>.workers.dev/api/patreon/webhook`; triggers `members:pledge:create`, `members:pledge:update`, `members:pledge:delete` (and `members:create/update/delete` if offered). Copy the webhook secret → `wrangler secret put PATREON_WEBHOOK_SECRET`.
 5. **Ultimate (future):** create a second Patreon tier, set `PATREON_ULTIMATE_TIER_ID`, `ENABLE_ULTIMATE = "true"`, and adjust price/limits in `TIER_CONFIG`. No code change is needed.
 6. **How access works:** the user pledges on Patreon, clicks **Connect Patreon** in the dashboard (OAuth, scopes `identity identity.memberships`), and the Worker reads the membership straight from Patreon, matching your campaign and tier IDs. The webhook then keeps it current; the Worker also re-verifies with Patreon every 6 hours on `/api/me`, and treats a membership past its next charge date (plus 3 days' grace) as expired. A declined payment, cancellation, or revoked OAuth removes Pro. The browser never sends or decides plan information.
 7. **Test it (needs two Patreon accounts; you cannot pledge to your own campaign):** pledge from a second account to the Pro tier → in Airtrohp log in as a different user → Connect Patreon → dashboard shows Pro and the 300/day allowance → cancel the pledge → within a webhook delivery (or after **Re-verify**) the account returns to Free. Check `wrangler tail` for logs.
