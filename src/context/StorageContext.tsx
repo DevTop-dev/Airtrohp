@@ -1,6 +1,6 @@
-import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
+import { createContext, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { useAuth } from './AuthContext';
-import { firestoreStorage, guestStorage, migrateGuestConversations, hasGuestConversations, type ChatStorage } from '../lib/storage';
+import { firestoreStorage, guestStorage, isExpired, migrateGuestConversations, hasGuestConversations, type ChatStorage } from '../lib/storage';
 import type { ConversationMeta } from '../lib/types';
 import { useToast } from './ToastContext';
 import { syncPrefsFromCloud } from '../lib/prefs';
@@ -22,6 +22,7 @@ export function StorageProvider({ children }: { children: ReactNode }) {
   const storage = useMemo<ChatStorage>(() => (uid ? firestoreStorage(uid) : guestStorage), [uid]);
   const [conversations, setConversations] = useState<ConversationMeta[]>([]);
   const [ready, setReady] = useState(false);
+  const purging = useRef(new Set<string>());
 
   useEffect(() => {
     if (uid) void syncPrefsFromCloud(uid);
@@ -42,7 +43,15 @@ export function StorageProvider({ children }: { children: ReactNode }) {
       }
       if (cancelled) return;
       unsub = storage.subscribe((list) => {
-        setConversations(list);
+        const now = Date.now();
+        // Conversations older than the retention period are hidden immediately and deleted in the background.
+        for (const c of list) {
+          if (isExpired(c.createdAt, now) && !purging.current.has(c.id)) {
+            purging.current.add(c.id);
+            void storage.remove(c.id).catch(() => purging.current.delete(c.id));
+          }
+        }
+        setConversations(list.filter((c) => !isExpired(c.createdAt, now)));
         setReady(true);
       });
     })();

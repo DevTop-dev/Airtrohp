@@ -116,7 +116,7 @@ npx wrangler login
 4. The Durable Object (`UsageCounter`) is created automatically by the migration in `wrangler.toml` (SQLite-backed, available on the free plan).
 5. Put that URL into Vercel as `VITE_API_URL` (section 4) and into `PATREON_REDIRECT_URI` in `wrangler.toml` (`<url>/api/patreon/callback`), then redeploy the Worker.
 
-Tuning without code changes: `GUEST_MESSAGE_LIMIT` (default 5), `GUEST_IP_DAILY_LIMIT` (15), `RATE_LIMIT_PER_MINUTE` (12), and `TIER_CONFIG` (JSON overrides for price, daily messages, context size per tier). Defaults: Free 20 messages/day, Pro 300/day, Ultimate 1000/day (disabled until `ENABLE_ULTIMATE=true`).
+Tuning without code changes: `GUEST_MESSAGE_LIMIT` (default 5), `GUEST_IP_DAILY_LIMIT` (15), `RATE_LIMIT_PER_MINUTE` (12), and `TIER_CONFIG` (JSON overrides for price, daily messages, context size per tier). Defaults: Free 50 messages/day (counted across all chats, resets at 00:00 UTC), Pro 300/day, Ultimate 1000/day (disabled until `ENABLE_ULTIMATE=true`).
 
 ## 4. Firebase
 
@@ -214,3 +214,10 @@ Run in the build sandbox (no internet package installs were possible there):
 - Gemini token counts come from the API's usage metadata; dollar costs are not tracked.
 - No in-app account deletion or email change (use Firebase console / password-reset email for now).
 - Terms of Service and Privacy Policy pages are not included.
+
+## Models, speed and retention
+
+- **Models.** `worker/wrangler.toml` sets `GEMINI_MODEL` (fast default, `gemini-3.5-flash-lite`), `GEMINI_MODEL_PRO` and `GEMINI_MODEL_FALLBACK` (`gemini-3.8-flash`). The 2.5 models are only served to accounts that already used them, which is why new keys got HTTP 404 on `gemini-2.5-flash`. Model names change over time: check https://ai.google.dev/gemini-api/docs/models and edit the three variables.
+- **Latency.** Requests use `thinkingLevel: "low"`. A response that has not started after 20 s is abandoned, retried once, then sent to the fallback model. A model that rejects the thinking setting is retried without it.
+- **Daily limit.** Free is 50 messages per UTC day across all chats. When it is used up the chat shows a countdown to 00:00 UTC.
+- **Retention.** Conversations are deleted 7 days after they were started (`RETENTION_DAYS` in `src/lib/config.ts`). The deletion runs in the browser when the user opens the app (guests: in localStorage; accounts: in Firestore). A conversation of a user who never returns stays in Firestore until they do; add a scheduled Worker or a Firestore TTL policy if you need server-side deletion.

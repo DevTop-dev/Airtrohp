@@ -323,7 +323,7 @@ console.log('firebase auth + usage');
   check('unknown kid rejected', (await call('/api/me', { headers: { Authorization: `Bearer ${await makeToken({}, 'nope')}` } })).status === 401);
 
   const me = await (await call('/api/me', { headers: { Authorization: `Bearer ${good}` } })).json();
-  check('/api/me works for valid token (free, 20/day)', me.tier === 'free' && me.limits.dailyMessages === 20 && me.isAdmin === false, me);
+  check('/api/me works for valid token (free, 50/day)', me.tier === 'free' && me.limits.dailyMessages === 50 && me.isAdmin === false, me);
 
   const unverified = await makeToken({ sub: 'user2', email_verified: false });
   const ur = await chat({ Authorization: `Bearer ${unverified}` });

@@ -14,6 +14,7 @@ import {
   writeBatch,
 } from 'firebase/firestore';
 import { db } from './firebase';
+import { RETENTION_MS } from './config';
 import type { ChatMessage, ConversationMeta } from './types';
 
 /** Conversation persistence. Guests use localStorage, signed-in users use Firestore (own data only). */
@@ -29,6 +30,11 @@ export interface ChatStorage {
 }
 
 const clean = <T,>(v: T): T => JSON.parse(JSON.stringify(v)) as T;
+
+/** True once a conversation is older than the retention period (legacy entries without a start time never expire). */
+export function isExpired(createdAt: number, now: number = Date.now()): boolean {
+  return createdAt > 0 && now - createdAt > RETENTION_MS;
+}
 
 // ---------------------------------------------------------------------------
 // Firestore
@@ -68,6 +74,10 @@ export function firestoreStorage(uid: string): ChatStorage {
       const metaSnap = await getDoc(doc(convs, id));
       if (!metaSnap.exists()) return { meta: null, messages: [] };
       const x = metaSnap.data();
+      if (isExpired(Number(x.createdAt ?? 0))) {
+        await this.remove(id).catch(() => undefined);
+        return { meta: null, messages: [] };
+      }
       const snap = await getDocs(query(msgs(id), orderBy('createdAt', 'asc')));
       return {
         meta: {
@@ -126,7 +136,12 @@ const listeners = new Set<() => void>();
 function readGuest(): GuestData {
   try {
     const raw = localStorage.getItem(GUEST_KEY);
-    if (raw) return JSON.parse(raw) as GuestData;
+    if (raw) {
+      const d = JSON.parse(raw) as GuestData;
+      const now = Date.now();
+      d.conversations = d.conversations.filter((c) => !isExpired(c.meta.createdAt, now));
+      return d;
+    }
   } catch {
     /* ignore */
   }

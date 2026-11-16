@@ -41,51 +41,42 @@ function MessageItemImpl({ message, isLast, streaming, initial, canEdit, onEdit,
   const files = useMemo(() => (isUser || active ? [] : extractFiles(message.content)), [isUser, active, message.content]);
 
   return (
-    <article className="group animate-fade-in border-b border-ink-800/70 px-4 py-6 sm:px-6" aria-label={isUser ? 'Your message' : 'Airtrohp response'}>
-      <div className="mx-auto flex max-w-3xl gap-4">
-        <div className="mt-0.5 shrink-0">
-          {isUser ? (
-            <div className="flex h-7 w-7 items-center justify-center rounded-full border border-ink-500 bg-ink-800 text-xs font-medium uppercase text-ink-100">{initial}</div>
-          ) : (
-            <LogoMark size={28} />
-          )}
-        </div>
-        <div className="min-w-0 flex-1">
-          <div className="mb-1.5 text-xs font-medium uppercase tracking-[0.18em] text-ink-300">{isUser ? 'You' : 'Airtrohp'}</div>
-
+    <article className="group animate-fade-in px-4 py-3 sm:px-6" aria-label={isUser ? 'Your message' : 'Airtrohp response'}>
+      <div className={`mx-auto flex max-w-3xl ${isUser ? 'justify-end' : ''}`}>
+        <div className={isUser && !editing ? 'max-w-[85%]' : 'min-w-0 flex-1'}>
           {isUser && editing ? (
-            <div className="space-y-2">
+            <div className="space-y-2 rounded-3xl bg-ink-800 p-3">
               <textarea
                 value={draft}
                 onChange={(e) => setDraft(e.target.value)}
                 rows={Math.min(14, Math.max(3, draft.split('\n').length + 1))}
-                className="input resize-y font-sans"
+                className="block w-full resize-y bg-transparent px-2 py-1 font-sans text-[15px] leading-7 text-ink-50 focus:outline-none"
                 autoFocus
               />
-              <div className="flex gap-2">
+              <div className="flex justify-end gap-2">
+                <button className="btn-ghost btn-sm !rounded-full" onClick={() => { setEditing(false); setDraft(message.content); }}>
+                  Cancel
+                </button>
                 <button
-                  className="btn-primary btn-sm"
+                  className="btn-primary btn-sm !rounded-full"
                   disabled={!draft.trim()}
                   onClick={() => {
                     setEditing(false);
                     onEdit(message.id, draft);
                   }}
                 >
-                  Save and regenerate
-                </button>
-                <button className="btn-ghost btn-sm" onClick={() => { setEditing(false); setDraft(message.content); }}>
-                  Cancel
+                  Send
                 </button>
               </div>
             </div>
           ) : isUser ? (
-            <div className="whitespace-pre-wrap break-words text-[15px] leading-7 text-ink-50">{message.content}</div>
+            <div className="whitespace-pre-wrap break-words rounded-3xl bg-ink-800 px-5 py-2.5 text-[15px] leading-7 text-ink-50">{message.content}</div>
           ) : message.content ? (
             <Markdown content={message.content} />
           ) : (
             <div className="flex items-center gap-1.5 py-2" aria-label="Airtrohp is thinking">
               {[0, 1, 2].map((i) => (
-                <span key={i} className="h-1.5 w-1.5 animate-blink rounded-full bg-ink-200" style={{ animationDelay: `${i * 0.18}s` }} />
+                <span key={i} className="h-2 w-2 animate-blink rounded-full bg-ink-200" style={{ animationDelay: `${i * 0.18}s` }} />
               ))}
             </div>
           )}
@@ -93,9 +84,9 @@ function MessageItemImpl({ message, isLast, streaming, initial, canEdit, onEdit,
           {active && message.content && <span className="ml-0.5 inline-block h-4 w-[7px] translate-y-0.5 animate-blink bg-ink-100" aria-hidden />}
 
           {message.files && message.files.length > 0 && (
-            <div className="mt-3 flex flex-wrap gap-2">
+            <div className={`mt-2 flex flex-wrap gap-2 ${isUser ? 'justify-end' : ''}`}>
               {message.files.map((f) => (
-                <span key={f.name} className="inline-flex items-center gap-1.5 rounded-md border border-ink-600 bg-ink-800 px-2 py-1 font-mono text-xs text-ink-200" title={f.name}>
+                <span key={f.name} className="inline-flex items-center gap-1.5 rounded-lg border border-ink-600 bg-ink-850 px-2.5 py-1.5 font-mono text-xs text-ink-200" title={f.name}>
                   <FileCode2 size={13} />
                   <span className="max-w-[180px] truncate">{f.name}</span>
                   <span className="text-ink-400">{formatBytes(f.size)}</span>
@@ -105,7 +96,7 @@ function MessageItemImpl({ message, isLast, streaming, initial, canEdit, onEdit,
           )}
 
           {!active && !editing && (message.content || isUser) && (
-            <div className="mt-3 flex flex-wrap items-center gap-0.5 opacity-100 transition sm:opacity-0 sm:group-hover:opacity-100 sm:group-focus-within:opacity-100">
+            <div className={`mt-1.5 flex flex-wrap items-center gap-0.5 opacity-100 transition sm:opacity-0 sm:group-hover:opacity-100 sm:group-focus-within:opacity-100 ${isUser ? 'justify-end' : ''}`}>
               <IconBtn onClick={() => copy(message.content)} label="Copy message">
                 {copied ? <Check size={14} /> : <Copy size={14} />}
                 {copied ? 'Copied' : 'Copy'}

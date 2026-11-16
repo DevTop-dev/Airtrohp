@@ -103,7 +103,7 @@ export function Composer({ streaming, disabled, disabledReason, maxAttachChars, 
         }}
         onDragLeave={() => setDrag(false)}
         onDrop={onDrop}
-        className={`rounded-2xl border bg-ink-850 shadow-glow transition ${drag ? 'border-ink-100' : 'border-ink-600 focus-within:border-ink-300'}`}
+        className={`rounded-[28px] border bg-ink-800 transition ${drag ? 'border-ink-100' : 'border-ink-700 focus-within:border-ink-500'}`}
       >
         {files.length > 0 && (
           <div className="flex flex-wrap gap-2 border-b border-ink-700 px-3 pb-2 pt-3">
@@ -136,18 +136,18 @@ export function Composer({ streaming, disabled, disabledReason, maxAttachChars, 
           }}
           rows={1}
           disabled={disabled}
-          placeholder={disabled ? disabledReason ?? 'Chat unavailable' : 'Ask Airtrohp to build, debug or explain anything…'}
-          className="block max-h-[220px] w-full resize-none bg-transparent px-4 pb-2 pt-3.5 text-[15px] leading-6 text-ink-50 placeholder-ink-400 focus:outline-none disabled:cursor-not-allowed"
+          placeholder={disabled ? disabledReason ?? 'Chat unavailable' : 'Message Airtrohp'}
+          className="block max-h-[220px] w-full resize-none bg-transparent px-5 pb-2 pt-4 text-[15px] leading-6 text-ink-50 placeholder-ink-400 focus:outline-none disabled:cursor-not-allowed"
           aria-label="Message Airtrohp"
         />
 
-        <div className="flex items-center justify-between gap-2 px-2.5 pb-2.5">
+        <div className="flex items-center justify-between gap-2 px-3 pb-3">
           <div className="flex min-w-0 items-center gap-1">
             <button
               type="button"
               onClick={() => input.current?.click()}
               disabled={disabled || busy}
-              className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-ink-300 transition hover:bg-ink-700 hover:text-ink-50 disabled:opacity-40"
+              className="inline-flex h-9 w-9 items-center justify-center rounded-full text-ink-300 transition hover:bg-ink-700 hover:text-ink-50 disabled:opacity-40"
               aria-label="Attach files or a ZIP project"
               title="Attach files or a ZIP project"
             >
@@ -167,14 +167,14 @@ export function Composer({ streaming, disabled, disabledReason, maxAttachChars, 
             {toolbar}
           </div>
           {streaming ? (
-            <button onClick={onStop} className="inline-flex h-8 items-center gap-2 rounded-lg border border-ink-400 px-3 text-xs font-medium text-ink-50 transition hover:bg-ink-700" aria-label="Stop generating">
+            <button onClick={onStop} className="inline-flex h-9 items-center gap-2 rounded-full bg-ink-50 px-4 text-xs font-medium text-ink-950 transition hover:bg-white" aria-label="Stop generating">
               <Square size={12} fill="currentColor" /> Stop
             </button>
           ) : (
             <button
               onClick={() => void submit()}
               disabled={disabled || busy || (!text.trim() && files.length === 0)}
-              className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-ink-50 text-ink-950 transition hover:bg-white disabled:bg-ink-600 disabled:text-ink-400"
+              className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-ink-50 text-ink-950 transition hover:bg-white disabled:bg-ink-600 disabled:text-ink-400"
               aria-label="Send message"
             >
               <ArrowUp size={17} />

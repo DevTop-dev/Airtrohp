@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
-import { ArrowDown, Bug, FolderOpen, Hammer, Lock, MailCheck, Sparkles, Wand2 } from 'lucide-react';
+import { ArrowDown, Bug, Clock, FolderOpen, Hammer, Lock, MailCheck, Sparkles, Wand2 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useStorage } from '../../context/StorageContext';
 import { useToast } from '../../context/ToastContext';
@@ -12,6 +12,9 @@ import type { Project } from '../../lib/types';
 import { LogoMark } from '../ui/Logo';
 import { Notice, Spinner } from '../ui/Feedback';
 import { Composer } from './Composer';
+import { FileViewerProvider } from './FileViewer';
+import { formatCountdown, useCountdown } from '../../hooks/useCountdown';
+import { nextUtcMidnight } from '../../lib/format';
 import { MessageItem } from './MessageItem';
 
 const SUGGESTIONS = [
@@ -22,7 +25,7 @@ const SUGGESTIONS = [
 ];
 
 export function ChatView({ conversationId }: { conversationId?: string }) {
-  const { user, me } = useAuth();
+  const { user, me, refresh } = useAuth();
   const { storage, conversations } = useStorage();
   const toast = useToast();
   const navigate = useNavigate();
@@ -81,6 +84,20 @@ export function ChatView({ conversationId }: { conversationId?: string }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [guest, verified, me?.usage.remainingToday, me?.limits.dailyMessages]);
 
+  // Daily allowance exhausted: remember when it resets so we can show a countdown
+  const [resetsAt, setResetsAt] = useState<number | null>(null);
+  useEffect(() => {
+    if (verified && me!.usage.remainingToday <= 0) setResetsAt(me!.usage.resetsAt ?? nextUtcMidnight());
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [verified, me?.usage.remainingToday, me?.usage.resetsAt]);
+  useEffect(() => {
+    if (error?.code === 'USAGE_LIMIT') {
+      setQuota((q) => ({ remaining: 0, limit: q?.limit ?? me?.limits.dailyMessages ?? 0 }));
+      setResetsAt(error.resetsAt ?? nextUtcMidnight());
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [error]);
+
   // Auto-scroll that respects the user scrolling up
   const scroller = useRef<HTMLDivElement>(null);
   const stick = useRef(true);
@@ -101,6 +118,8 @@ export function ChatView({ conversationId }: { conversationId?: string }) {
   }, [conversationId]);
 
   const limitReached = guest && quota !== null && quota.remaining <= 0;
+  const dailyLimitReached = verified && quota !== null && quota.remaining <= 0;
+  const blocked = limitReached || dailyLimitReached;
   const initial = (user?.displayName || user?.email || 'G').charAt(0);
 
   const saveFiles = useMemo(() => {
@@ -128,89 +147,58 @@ export function ChatView({ conversationId }: { conversationId?: string }) {
         ? `${Math.max(0, quota.remaining)} of ${quota.limit} free messages left`
         : `${Math.max(0, quota.remaining)} messages left today`;
 
-  return (
-    <div className="flex h-full min-h-0 flex-col">
-      {/* header */}
-      <div className="flex items-center justify-between gap-3 border-b border-ink-800 px-4 py-2.5 sm:px-6">
-        <div className="min-w-0 truncate text-sm text-ink-200">{convMeta?.title ?? (conversationId ? '' : 'New conversation')}</div>
-        {quotaLabel && (
-          <span
-            className={`shrink-0 rounded-full border px-3 py-1 text-xs ${quota!.remaining <= (guest ? 1 : 3) ? 'border-ink-100 text-ink-50' : 'border-ink-600 text-ink-300'}`}
-            aria-live="polite"
-            data-testid="message-counter"
-          >
-            {quotaLabel}
-          </span>
-        )}
-      </div>
-
-      {/* messages */}
-      <div ref={scroller} onScroll={onScroll} className="relative min-h-0 flex-1 overflow-y-auto">
-        {loading ? (
-          <div className="flex h-full items-center justify-center text-ink-300">
-            <Spinner size={20} />
-          </div>
-        ) : notFound ? (
-          <div className="mx-auto mt-20 max-w-md px-6 text-center">
-            <h2 className="text-lg font-medium text-ink-50">Conversation not found</h2>
-            <p className="mt-2 text-sm text-ink-300">It may have been deleted or belongs to another account.</p>
-            <Link to="/chat" className="btn-primary mt-5">Start a new conversation</Link>
-          </div>
-        ) : messages.length === 0 ? (
-          <div className="mx-auto flex min-h-full max-w-3xl flex-col items-center justify-center px-5 py-10 text-center">
-            <LogoMark size={52} />
-            <h1 className="mt-6 font-display text-4xl text-ink-50 sm:text-5xl">What shall we build?</h1>
-            <p className="mt-3 max-w-md text-sm text-ink-300">
-              {guest
-                ? `Start immediately. You have ${quota?.limit ?? 5} free messages, no account required.`
-                : 'Ask for complete programs, bug fixes, refactors or architecture. Attach files or a ZIP for project-aware help.'}
-            </p>
-            <div className="mt-8 grid w-full gap-3 sm:grid-cols-2">
-              {SUGGESTIONS.map((s) => (
-                <button
-                  key={s.title}
-                  onClick={() => setPrefill({ text: s.prompt, nonce: Date.now() })}
-                  className="group flex items-start gap-3 rounded-xl border border-ink-700 bg-ink-850 p-4 text-left transition hover:border-ink-400 hover:bg-ink-800"
-                >
-                  <s.icon size={18} className="mt-0.5 shrink-0 text-ink-300 transition group-hover:text-ink-50" />
-                  <span>
-                    <span className="block text-sm font-medium text-ink-50">{s.title}</span>
-                    <span className="mt-1 line-clamp-2 text-xs leading-5 text-ink-300">{s.prompt}</span>
-                  </span>
-                </button>
-              ))}
+  const empty = !loading && !notFound && messages.length === 0;
+  const gate = (
+    <>
+      {limitReached ? (
+        <SignupPrompt limit={quota?.limit ?? 5} />
+      ) : dailyLimitReached ? (
+        <DailyLimit key={resetsAt ?? 0} limit={quota?.limit ?? 0} resetsAt={resetsAt ?? nextUtcMidnight()} onExpire={() => void refresh()} />
+      ) : unverified ? (
+        <div className="mx-auto w-full max-w-3xl px-3 pb-5 sm:px-6">
+          <div className="card flex flex-wrap items-center justify-between gap-4 p-5">
+            <div className="flex items-start gap-3">
+              <MailCheck size={20} className="mt-0.5 text-ink-200" />
+              <div>
+                <p className="text-sm font-medium text-ink-50">Verify your email to start chatting</p>
+                <p className="text-xs text-ink-300">We sent a link to {me?.email}. It keeps your account and conversations secure.</p>
+              </div>
             </div>
+            <Link to="/verify-email" className="btn-primary btn-sm">Verify email</Link>
           </div>
-        ) : (
-          <div className="pb-4">
-            {messages.map((m, i) => (
-              <MessageItem
-                key={m.id}
-                message={m}
-                isLast={i === messages.length - 1}
-                streaming={streaming}
-                initial={initial}
-                canEdit={!streaming && !limitReached && !unverified}
-                onEdit={chat.editMessage}
-                onRegenerate={chat.regenerate}
-                onSaveFiles={saveFiles}
-              />
-            ))}
-          </div>
-        )}
-        {showJump && (
-          <button
-            onClick={() => scroller.current?.scrollTo({ top: scroller.current.scrollHeight, behavior: 'smooth' })}
-            className="sticky bottom-3 left-1/2 -translate-x-1/2 rounded-full border border-ink-500 bg-ink-800 p-2 text-ink-100 shadow-glow hover:bg-ink-700"
-            aria-label="Scroll to latest"
-          >
-            <ArrowDown size={16} />
-          </button>
-        )}
-      </div>
-
-      {/* errors */}
-      {error && !limitReached && (
+        </div>
+      ) : (
+        <Composer
+          streaming={streaming}
+          maxAttachChars={Math.min(MAX_ATTACH_CHARS, Math.floor(maxChars * 0.8))}
+          onSend={chat.send}
+          onStop={chat.stop}
+          prefill={empty ? prefill : null}
+          toolbar={
+            verified && projects.length > 0 ? (
+              <label className="ml-1 inline-flex min-w-0 items-center gap-1.5 rounded-lg px-2 py-1.5 text-xs text-ink-300 hover:bg-ink-700">
+                <FolderOpen size={15} className="shrink-0" />
+                <select
+                  value={projectId ?? ''}
+                  onChange={(e) => void onProjectChange(e.target.value)}
+                  className="max-w-[140px] truncate bg-transparent text-xs text-ink-200 focus:outline-none"
+                  aria-label="Project context"
+                >
+                  <option value="" className="bg-ink-800">No project</option>
+                  {projects.map((p) => (
+                    <option key={p.id} value={p.id} className="bg-ink-800">{p.name}</option>
+                  ))}
+                </select>
+              </label>
+            ) : null
+          }
+        />
+      )}
+    </>
+  );
+  const errorBar = (
+    <>
+      {error && !blocked && (
         <div className="mx-auto w-full max-w-3xl px-3 pb-2 sm:px-6">
           <Notice tone="error">
             <div className="flex flex-wrap items-center justify-between gap-3">
@@ -232,49 +220,124 @@ export function ChatView({ conversationId }: { conversationId?: string }) {
         </div>
       )}
 
-      {/* composer or gate */}
-      {limitReached ? (
-        <SignupPrompt limit={quota?.limit ?? 5} />
-      ) : unverified ? (
-        <div className="mx-auto w-full max-w-3xl px-3 pb-5 sm:px-6">
-          <div className="card flex flex-wrap items-center justify-between gap-4 p-5">
-            <div className="flex items-start gap-3">
-              <MailCheck size={20} className="mt-0.5 text-ink-200" />
-              <div>
-                <p className="text-sm font-medium text-ink-50">Verify your email to start chatting</p>
-                <p className="text-xs text-ink-300">We sent a link to {me?.email}. It keeps your account and conversations secure.</p>
-              </div>
+    </>
+  );
+  return (
+    <FileViewerProvider>
+    <div className="flex h-full min-h-0 flex-col">
+      <div className="flex items-center justify-between gap-3 px-4 py-2.5 sm:px-6">
+        <div className="min-w-0 truncate text-sm text-ink-200">{convMeta?.title ?? (conversationId ? '' : 'New conversation')}</div>
+        {quotaLabel && (
+          <span
+            className={`shrink-0 rounded-full border px-3 py-1 text-xs ${quota!.remaining <= (guest ? 1 : 3) ? 'border-ink-100 text-ink-50' : 'border-ink-600 text-ink-300'}`}
+            aria-live="polite"
+            data-testid="message-counter"
+          >
+            {quotaLabel}
+          </span>
+        )}
+      </div>
+
+
+      {empty ? (
+        <div className="flex min-h-0 flex-1 flex-col items-center justify-center overflow-y-auto pb-8">
+          <div className="w-full max-w-3xl">
+            <div className="mb-7 flex flex-col items-center px-5 text-center">
+              <LogoMark size={44} />
+              <h1 className="mt-5 font-display text-3xl text-ink-50 sm:text-4xl">What can I help you build?</h1>
+              <p className="mt-2 max-w-md text-sm text-ink-300">
+                {guest
+                  ? `Start immediately. You have ${quota?.limit ?? 5} free messages, no account required.`
+                  : 'Ask for complete programs, bug fixes, refactors or architecture. Attach files or a ZIP for project-aware help.'}
+              </p>
             </div>
-            <Link to="/verify-email" className="btn-primary btn-sm">Verify email</Link>
+            {errorBar}
+            {gate}
+            <div className="mt-1 flex flex-wrap justify-center gap-2 px-4">
+              {SUGGESTIONS.map((s) => (
+                <button
+                  key={s.title}
+                  onClick={() => setPrefill({ text: s.prompt, nonce: Date.now() })}
+                  className="inline-flex items-center gap-2 rounded-full border border-ink-700 px-4 py-2 text-sm text-ink-200 transition hover:border-ink-400 hover:bg-ink-800 hover:text-ink-50"
+                >
+                  <s.icon size={15} className="text-ink-300" />
+                  {s.title}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
       ) : (
-        <Composer
-          streaming={streaming}
-          maxAttachChars={Math.min(MAX_ATTACH_CHARS, Math.floor(maxChars * 0.8))}
-          onSend={chat.send}
-          onStop={chat.stop}
-          prefill={prefill}
-          toolbar={
-            verified && projects.length > 0 ? (
-              <label className="ml-1 inline-flex min-w-0 items-center gap-1.5 rounded-lg px-2 py-1.5 text-xs text-ink-300 hover:bg-ink-700">
-                <FolderOpen size={15} className="shrink-0" />
-                <select
-                  value={projectId ?? ''}
-                  onChange={(e) => void onProjectChange(e.target.value)}
-                  className="max-w-[140px] truncate bg-transparent text-xs text-ink-200 focus:outline-none"
-                  aria-label="Project context"
-                >
-                  <option value="" className="bg-ink-800">No project</option>
-                  {projects.map((p) => (
-                    <option key={p.id} value={p.id} className="bg-ink-800">{p.name}</option>
-                  ))}
-                </select>
-              </label>
-            ) : null
-          }
-        />
+        <>
+          <div ref={scroller} onScroll={onScroll} className="relative min-h-0 flex-1 overflow-y-auto">
+            {loading ? (
+              <div className="flex h-full items-center justify-center text-ink-300">
+                <Spinner size={20} />
+              </div>
+            ) : notFound ? (
+              <div className="mx-auto mt-20 max-w-md px-6 text-center">
+                <h2 className="text-lg font-medium text-ink-50">Conversation not found</h2>
+                <p className="mt-2 text-sm text-ink-300">It may have been deleted, expired after 7 days, or belongs to another account.</p>
+                <Link to="/chat" className="btn-primary mt-5">Start a new conversation</Link>
+              </div>
+            ) : (
+              <div className="pb-4 pt-2">
+                {messages.map((m, i) => (
+                  <MessageItem
+                    key={m.id}
+                    message={m}
+                    isLast={i === messages.length - 1}
+                    streaming={streaming}
+                    initial={initial}
+                    canEdit={!streaming && !blocked && !unverified}
+                    onEdit={chat.editMessage}
+                    onRegenerate={chat.regenerate}
+                    onSaveFiles={saveFiles}
+                  />
+                ))}
+              </div>
+            )}
+            {showJump && (
+              <button
+                onClick={() => scroller.current?.scrollTo({ top: scroller.current.scrollHeight, behavior: 'smooth' })}
+                className="sticky bottom-3 left-1/2 -translate-x-1/2 rounded-full border border-ink-500 bg-ink-800 p-2 text-ink-100 shadow-glow hover:bg-ink-700"
+                aria-label="Scroll to latest"
+              >
+                <ArrowDown size={16} />
+              </button>
+            )}
+          </div>
+          {errorBar}
+          {gate}
+        </>
       )}
+    </div>
+    </FileViewerProvider>
+  );
+}
+
+function DailyLimit({ limit, resetsAt, onExpire }: { limit: number; resetsAt: number; onExpire: () => void }) {
+  const left = useCountdown(resetsAt);
+  const fired = useRef(false);
+  useEffect(() => {
+    if (left <= 0 && !fired.current) {
+      fired.current = true;
+      onExpire();
+    }
+  }, [left, onExpire]);
+  const at = new Date(resetsAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  return (
+    <div className="mx-auto w-full max-w-3xl px-3 pb-5 sm:px-6">
+      <div className="card animate-fade-up p-6 text-center" role="status" aria-live="polite">
+        <div className="mx-auto flex h-10 w-10 items-center justify-center rounded-full border border-ink-500 bg-ink-800">
+          <Clock size={18} />
+        </div>
+        <h3 className="mt-4 text-base font-medium text-ink-50">You have used all {limit > 0 ? limit : 'your'} messages for today</h3>
+        <p className="mt-1 text-sm text-ink-300">You can chat again in</p>
+        <div className="mt-2 font-mono text-4xl tracking-wider text-ink-50" data-testid="limit-countdown">{formatCountdown(left)}</div>
+        <p className="mt-2 text-xs text-ink-400">Your allowance resets today at {at} (your local time).</p>
+        <Link to="/dashboard" className="btn-secondary btn-sm mt-5">View plans</Link>
+      </div>
     </div>
   );
 }

@@ -115,3 +115,9 @@ export function splitList(value: string | undefined): string[] {
     .map((s) => s.trim())
     .filter(Boolean);
 }
+
+/** Epoch ms of the next UTC midnight: when the daily message allowance resets. */
+export function nextUtcMidnight(ts: number = Date.now()): number {
+  const d = new Date(ts);
+  return Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate() + 1);
+}

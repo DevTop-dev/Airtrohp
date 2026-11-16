@@ -7,6 +7,8 @@ import type { AttachedFile, ChatMessage } from '../lib/types';
 export interface ChatError {
   code: string;
   message: string;
+  /** Epoch ms when a USAGE_LIMIT block ends. */
+  resetsAt?: number;
 }
 export interface Quota {
   remaining: number;
@@ -143,7 +145,10 @@ export function useChat({ storage, conversationId, onConversationCreated, maxCha
           setMessages((prev) => prev.filter((m) => m.id !== placeholder.id));
         }
         if (!aborted && visible()) {
-          const err = e instanceof ApiError ? { code: e.code, message: e.message } : { code: 'UNKNOWN', message: 'Something went wrong. Please try again.' };
+          const err: ChatError =
+            e instanceof ApiError
+              ? { code: e.code, message: e.message, resetsAt: typeof e.data.resetsAt === 'number' ? e.data.resetsAt : undefined }
+              : { code: 'UNKNOWN', message: 'Something went wrong. Please try again.' };
           if (err.code === 'GUEST_LIMIT_REACHED') setQuota((q) => ({ remaining: 0, limit: q?.limit ?? 5 }));
           setError(err);
         }

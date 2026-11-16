@@ -7,7 +7,7 @@ import { FirestoreStore } from './firestore';
 import { PatreonService, buildAuthorizeUrl, patreonConfigured, verifyState } from './patreon';
 import { entitlement, type Store } from './store';
 import { Counters } from './usage';
-import { HttpError, json, lastDays, splitList, utcDay } from './utils';
+import { HttpError, json, lastDays, nextUtcMidnight, splitList, utcDay } from './utils';
 
 export { UsageCounter } from './usage';
 
@@ -108,7 +108,7 @@ export async function handleRequest(request: Request, env: Env, ctx: Ctx, partia
           patreonLinked: !!fresh.membership.patreonUserId,
         },
         limits: { dailyMessages: tier.dailyMessages, maxContextChars: tier.maxContextChars },
-        usage: { usedToday: used, remainingToday: Math.max(0, tier.dailyMessages - used) },
+        usage: { usedToday: used, remainingToday: Math.max(0, tier.dailyMessages - used), resetsAt: nextUtcMidnight() },
       });
     } else if (path === '/api/usage' && method === 'GET') {
       const p = await requireUser(request, env, fetcher);

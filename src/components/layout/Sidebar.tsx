@@ -7,6 +7,7 @@ import { useAuth } from '../../context/AuthContext';
 import { useStorage } from '../../context/StorageContext';
 import { useToast } from '../../context/ToastContext';
 import type { ConversationMeta } from '../../lib/types';
+import { RETENTION_DAYS } from '../../lib/config';
 
 function ConversationItem({ c, active, onNavigate }: { c: ConversationMeta; active: boolean; onNavigate: () => void }) {
   const { storage } = useStorage();
@@ -90,13 +91,14 @@ export function Sidebar({ onNavigate }: { onNavigate: () => void }) {
       </div>
 
       <div className="px-3">
-        <button onClick={() => { navigate('/chat'); onNavigate(); }} className="btn-secondary w-full justify-start !px-3">
+        <button onClick={() => { navigate('/chat'); onNavigate(); }} className="btn-ghost w-full justify-start gap-3 !px-3 text-ink-50">
           <Plus size={16} /> New chat
         </button>
       </div>
 
       <div className="mt-4 min-h-0 flex-1 overflow-y-auto px-3">
         <div className="eyebrow mb-2 px-1">{signedIn ? 'History' : 'This session'}</div>
+        <p className="mb-2 px-1 text-[11px] leading-4 text-ink-400">Chats are kept for {RETENTION_DAYS} days, then deleted automatically.</p>
         {!ready ? (
           <div className="space-y-2 px-1" aria-hidden>
             {[0, 1, 2].map((i) => <div key={i} className="h-7 animate-pulse rounded-md bg-ink-800" />)}

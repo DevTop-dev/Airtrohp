@@ -69,3 +69,9 @@ export function friendlyAuthError(code: string): string {
       return 'Something went wrong. Please try again.';
   }
 }
+
+/** Epoch ms of the next UTC midnight (the Worker's daily reset), used when the server did not send one. */
+export function nextUtcMidnight(now: number = Date.now()): number {
+  const d = new Date(now);
+  return Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate() + 1);
+}

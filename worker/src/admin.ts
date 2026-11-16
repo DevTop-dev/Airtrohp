@@ -4,6 +4,7 @@ import { FREE_MEMBERSHIP, type Membership, type Store } from './store';
 import type { Counters } from './usage';
 import { HttpError, lastDays, utcDay } from './utils';
 import { patreonConfigured } from './patreon';
+import { DEFAULT_MODEL, DEFAULT_MODEL_ADVANCED } from './gemini';
 
 export async function adminStats(store: Store, now: number) {
   const [total, pro, ultimate, global, daily] = await Promise.all([
@@ -36,7 +37,7 @@ export async function adminStatus(env: Env, store: Store) {
       patreonCampaignConfigured: !!env.PATREON_CAMPAIGN_ID,
       adminConfigured: !!(env.ADMIN_UIDS || env.ADMIN_EMAILS),
     },
-    models: { standard: env.GEMINI_MODEL ?? 'gemini-flash-latest', advanced: env.GEMINI_MODEL_PRO ?? 'gemini-pro-latest' },
+    models: { standard: env.GEMINI_MODEL ?? DEFAULT_MODEL, advanced: env.GEMINI_MODEL_PRO ?? DEFAULT_MODEL_ADVANCED },
   };
 }
 

@@ -4,6 +4,7 @@ import { GUEST_MAX_CONTEXT_CHARS, getTiers, guestIpDailyLimit, guestLimit, rateL
 import {
   buildGeminiBody,
   callGeminiResilient,
+  DEFAULT_MODEL_FALLBACK,
   chatInputSize,
   modelFor,
   parseGeminiEvent,
@@ -13,7 +14,7 @@ import {
 } from './gemini';
 import { entitlement, type Store } from './store';
 import type { Counters } from './usage';
-import { HttpError, enc, sha256Hex, utcDay } from './utils';
+import { HttpError, nextUtcMidnight, enc, sha256Hex, utcDay } from './utils';
 
 export interface ChatDeps {
   fetch: typeof fetch;
@@ -149,6 +150,7 @@ export async function handleChat(request: Request, env: Env, ctx: Ctx, deps: Cha
       limit: quotaLimit,
       remaining: 0,
       tier: tier.id,
+      resetsAt: nextUtcMidnight(),
     });
   }
   let remaining = quotaLimit - q.count;
@@ -178,7 +180,7 @@ export async function handleChat(request: Request, env: Env, ctx: Ctx, deps: Cha
     upstream = await callGeminiResilient(
       env,
       deps.fetch,
-      [modelFor(env, tier), env.GEMINI_MODEL_FALLBACK ?? 'gemini-flash-lite-latest'],
+      [modelFor(env, tier), env.GEMINI_MODEL_FALLBACK ?? DEFAULT_MODEL_FALLBACK],
       buildGeminiBody(input),
       controller.signal,
     );

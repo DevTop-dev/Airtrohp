@@ -78,12 +78,17 @@ export function buildGeminiBody(input: ChatInput) {
   return {
     systemInstruction: { parts: [{ text: system }] },
     contents,
-    generationConfig: { temperature: 0.7, maxOutputTokens: 8192 },
+    // Gemini 3 thinks at "high" by default, which delays the first token. "low" keeps chat fast.
+    generationConfig: { maxOutputTokens: 16384, thinkingConfig: { thinkingLevel: 'low' } },
   };
 }
 
+export const DEFAULT_MODEL = 'gemini-3.5-flash-lite';
+export const DEFAULT_MODEL_ADVANCED = 'gemini-3.8-flash';
+export const DEFAULT_MODEL_FALLBACK = 'gemini-3.8-flash';
+
 export function modelFor(env: Env, tier: Pick<TierConfig, 'model'>): string {
-  return tier.model === 'advanced' ? (env.GEMINI_MODEL_PRO ?? 'gemini-pro-latest') : (env.GEMINI_MODEL ?? 'gemini-flash-latest');
+  return tier.model === 'advanced' ? (env.GEMINI_MODEL_PRO ?? DEFAULT_MODEL_ADVANCED) : (env.GEMINI_MODEL ?? DEFAULT_MODEL);
 }
 
 export async function callGemini(env: Env, fetcher: typeof fetch, model: string, body: unknown, signal?: AbortSignal) {
@@ -125,10 +130,35 @@ export function parseGeminiEvent(data: string): GeminiChunk | null {
 }
 
 const RETRYABLE = new Set([429, 500, 503, 504]);
+/** How long Gemini may take to start answering before we give up on that attempt. */
+const FIRST_BYTE_TIMEOUT_MS = 20_000;
+
+function withoutThinking(body: unknown): unknown {
+  const b = body as { generationConfig?: Record<string, unknown> };
+  if (!b.generationConfig || !('thinkingConfig' in b.generationConfig)) return body;
+  const { thinkingConfig: _drop, ...rest } = b.generationConfig;
+  return { ...b, generationConfig: rest };
+}
+
+/** One call with a deadline for the response to start. The deadline is cleared once headers arrive, so long answers are never cut off. */
+async function callWithDeadline(env: Env, fetcher: typeof fetch, model: string, body: unknown, outer?: AbortSignal): Promise<Response> {
+  const ac = new AbortController();
+  const onOuterAbort = () => ac.abort();
+  outer?.addEventListener('abort', onOuterAbort, { once: true });
+  const timer = setTimeout(() => ac.abort(), FIRST_BYTE_TIMEOUT_MS);
+  try {
+    return await callGemini(env, fetcher, model, body, ac.signal);
+  } finally {
+    clearTimeout(timer);
+  }
+}
 
 /**
- * Calls Gemini, retrying once on a transient overload and then falling back to a second model.
- * Only runs before any bytes are streamed to the client, so it is safe to repeat.
+ * Calls Gemini and keeps the chat responsive:
+ *  - a slow or failing attempt is abandoned after a deadline,
+ *  - transient overloads are retried once, then the next model in the list is used,
+ *  - if a model rejects the thinking setting (HTTP 400), it is retried once without it.
+ * Only runs before any bytes reach the client, so it is safe to repeat.
  */
 export async function callGeminiResilient(
   env: Env,
@@ -139,15 +169,31 @@ export async function callGeminiResilient(
   sleep: (ms: number) => Promise<void> = (ms) => new Promise((r) => setTimeout(r, ms)),
 ): Promise<Response> {
   const unique = models.filter((m, i) => m && models.indexOf(m) === i);
+  let current = body;
   let last: Response | undefined;
+  let lastError: unknown;
   for (const model of unique) {
     for (let attempt = 0; attempt < 2; attempt++) {
       if (signal?.aborted) throw new Error('aborted');
       if (last) await last.body?.cancel().catch(() => undefined);
-      last = await callGemini(env, fetcher, model, body, signal);
-      if (last.ok || !RETRYABLE.has(last.status)) return last;
-      if (attempt === 0) await sleep(700);
+      last = undefined;
+      try {
+        last = await callWithDeadline(env, fetcher, model, current, signal);
+      } catch (e) {
+        if (signal?.aborted) throw e;
+        lastError = e; // deadline hit or network error: try again / next model
+        continue;
+      }
+      if (last.ok) return last;
+      if (last.status === 400 && current !== withoutThinking(current)) {
+        current = withoutThinking(current);
+        attempt--; // same model again, without the thinking setting
+        continue;
+      }
+      if (!RETRYABLE.has(last.status)) return last;
+      if (attempt === 0) await sleep(400);
     }
   }
-  return last as Response;
+  if (last) return last;
+  throw lastError ?? new Error('Gemini unreachable');
 }

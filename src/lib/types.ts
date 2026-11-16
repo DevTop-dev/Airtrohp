@@ -28,7 +28,7 @@ export interface Me {
   tierName: string;
   membership: { status: string; source: string; expiresAt: number | null; patreonLinked: boolean };
   limits: { dailyMessages: number; maxContextChars: number };
-  usage: { usedToday: number; remainingToday: number };
+  usage: { usedToday: number; remainingToday: number; /** epoch ms when the daily allowance resets (next UTC midnight) */ resetsAt?: number };
 }
 
 export interface UsageDay {

@@ -33,3 +33,7 @@ export const MAX_ZIP_ENTRIES = 600;
 export const MAX_ZIP_UNCOMPRESSED = 25 * 1024 * 1024;
 export const MAX_PROJECT_FILES = 300;
 export const GUEST_CONTEXT_CHARS = 60_000;
+
+/** Conversations are kept for this many days after they were started, then deleted. */
+export const RETENTION_DAYS = 7;
+export const RETENTION_MS = RETENTION_DAYS * 24 * 60 * 60 * 1000;
