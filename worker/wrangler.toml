@@ -8,6 +8,7 @@ compatibility_date = "2025-01-15"
 # ---------------------------------------------------------------------------
 [vars]
 FIREBASE_PROJECT_ID = "airtrohp"
+FIRESTORE_DATABASE_ID = "default"
 # Your Vercel URL(s), comma separated, no trailing slash. Add http://localhost:5173 for local dev.
 ALLOWED_ORIGINS = "https://airtrohp.vercel.app,http://localhost:5173"
 FRONTEND_URL = "https://airtrohp.vercel.app"

@@ -115,7 +115,7 @@ export class FirestoreClient {
   ) {}
 
   get dbPath() {
-    return `projects/${this.env.FIREBASE_PROJECT_ID}/databases/(default)`;
+    return `projects/${this.env.FIREBASE_PROJECT_ID}/databases/${this.env.FIRESTORE_DATABASE_ID || '(default)'}`;
   }
   private get base() {
     return `https://firestore.googleapis.com/v1/${this.dbPath}/documents`;

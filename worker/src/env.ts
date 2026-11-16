@@ -39,6 +39,7 @@ export interface Env {
   ADMIN_EMAILS?: string; // comma separated, must also be email-verified
 
   // ---- Plain vars (wrangler.toml [vars]) ----
+  FIRESTORE_DATABASE_ID?: string;
   FIREBASE_PROJECT_ID: string;
   FRONTEND_URL: string;
   ALLOWED_ORIGINS: string; // comma separated
