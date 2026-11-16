@@ -129,8 +129,9 @@ export class FirestoreClient {
       body: body === undefined ? undefined : JSON.stringify(body),
     });
     if (!res.ok && !okStatuses.includes(res.status)) {
-      console.error('Firestore error', res.status, (await res.text()).slice(0, 300));
-      throw new HttpError(502, 'DATABASE_ERROR', 'Database request failed');
+      const body = (await res.text()).replace(/\s+/g, ' ');
+      console.error('Firestore error', res.status, body.slice(0, 300));
+      throw new HttpError(502, 'DATABASE_ERROR', `Database request failed (Firestore ${res.status}: ${body.slice(0, 200)})`);
     }
     return res;
   }
