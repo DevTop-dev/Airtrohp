@@ -21,7 +21,7 @@ Firestore is also read/written **directly by the browser** for the signed-in use
 
 ```
 airtrohp/
-├─ index.html                 Vite entry (SEO meta, fonts, "powered by DevTop" bar)
+├─ index.html                 Vite entry (SEO meta, fonts)
 ├─ package.json  vite.config.ts  tsconfig.json  tailwind.config.js  postcss.config.js
 ├─ vercel.json                SPA rewrites + security headers
 ├─ .env.example               Frontend variables (placeholders) + list of Worker secrets
@@ -181,10 +181,6 @@ Billing is optional. Until configured, the dashboard shows that billing is unava
 - **Uploads:** read as text in the browser only. ZIPs are filtered before decompression (path traversal, extension allow-list, ignored dirs, size and entry-count caps). Uploaded code is **never executed**; if you ever add execution it must run in a separate, isolated sandbox.
 - **Prompt safety:** the system prompt and Gemini's built-in safety filters decline clearly harmful requests (credential theft, malware, phishing, unauthorized access). That is policy by instruction, not a guarantee.
 - **Privacy:** messages and attachments are sent to Google's Gemini API. Tell your users (the FAQ already does). You still need to write your own Terms and Privacy Policy pages.
-
-## 8. "powered by DevTop" footer
-
-`index.html` includes the DevTop bar (Go to our page, plus the hidden Post option) with the DevTop hub's own public Firebase web config and a SHA-256 hash of the post code. No plain code or credentials are in the source. To remove it, delete the `#devtopBar` element and the script after it, and the `#devtopBar` CSS block in `src/index.css`, and the `--devtop-h` padding.
 
 ## 9. Verification status (honest)
 

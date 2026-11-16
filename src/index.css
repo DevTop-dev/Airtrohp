@@ -3,7 +3,7 @@
 @tailwind utilities;
 
 :root {
-  --devtop-h: 46px;
+  --devtop-h: 0px;
   color-scheme: dark;
 }
 
@@ -15,7 +15,7 @@ body,
 
 body {
   @apply bg-ink-950 font-sans text-ink-100 antialiased;
-  padding-bottom: var(--devtop-h); /* reserved strip for the fixed "powered by DevTop" bar */
+  padding-bottom: var(--devtop-h);
   text-rendering: optimizeLegibility;
 }
 
@@ -226,12 +226,6 @@ body {
   font-weight: 700;
 }
 
-/* ---------- powered by DevTop bar ---------- */
-#devtopBar { position: fixed; left: 50%; bottom: 10px; transform: translateX(-50%); z-index: 300; display: flex; align-items: center; gap: 4px; padding: 5px 6px 5px 14px; border-radius: 999px; background: #0a0a0a; color: #f5f5f5; font-size: 12px; box-shadow: 0 4px 18px rgba(0,0,0,.25); border: 1px solid #2a2a2a; white-space: nowrap; max-width: calc(100vw - 24px); }
-#devtopBar b { font-weight: 700; letter-spacing: .02em; margin-right: 6px; }
-#devtopBar a, #devtopBar button { font: inherit; color: #f5f5f5; background: transparent; border: 1px solid #3a3a3a; border-radius: 999px; padding: 4px 11px; cursor: pointer; text-decoration: none; }
-#devtopBar a:hover, #devtopBar button:hover { background: #f5f5f5; color: #0a0a0a; }
-@media (max-width: 480px) { #devtopBar { font-size: 11px; padding-left: 10px; } #devtopBar a, #devtopBar button { padding: 4px 9px; } }
 
 @media (prefers-reduced-motion: reduce) {
   *,
