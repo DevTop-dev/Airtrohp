@@ -21,11 +21,11 @@ GUEST_IP_DAILY_LIMIT = "15"
 RATE_LIMIT_PER_MINUTE = "12"
 
 # Patreon (fill in after creating your Patreon client; see README)
-PATREON_CAMPAIGN_ID = ""
+PATREON_CAMPAIGN_ID = "17025245"
 PATREON_PRO_TIER_ID = ""
 PATREON_ULTIMATE_TIER_ID = ""
 PATREON_REDIRECT_URI = "https://airtrohp.nemetimilan139.workers.dev/api/patreon/callback"
-PATREON_JOIN_URL = "https://www.patreon.com/cw/Duozesty"
+PATREON_JOIN_URL = "https://www.patreon.com/17025245/join"
 
 # Ultimate tier is prepared but off until you create the Patreon tier. Prices and limits can be
 # overridden without code changes, e.g.:
