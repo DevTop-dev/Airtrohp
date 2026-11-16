@@ -155,7 +155,8 @@ export async function handleRequest(request: Request, env: Env, ctx: Ctx, partia
       return json({ error: { code: e.code, message: e.message, ...(e.extra ?? {}) } }, e.status, headers);
     }
     console.error('Unhandled error', e);
-    return json({ error: { code: 'INTERNAL_ERROR', message: 'Something went wrong on our side.' } }, 500, headers);
+    const detail = (e instanceof Error ? e.message : String(e)).replace(/\s+/g, ' ').slice(0, 220);
+    return json({ error: { code: 'INTERNAL_ERROR', message: `Something went wrong on our side. (${detail})` } }, 500, headers);
   }
 }
 
