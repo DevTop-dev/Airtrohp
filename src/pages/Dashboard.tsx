@@ -8,6 +8,7 @@ import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import { api, ApiError } from '../lib/api';
 import { formatDate, formatNumber } from '../lib/format';
+import { PATREON_URL, isUnlimited } from '../lib/config';
 import { useDocTitle, usePublicConfig } from '../hooks/useMisc';
 import type { UsageDay } from '../lib/types';
 
@@ -114,7 +115,8 @@ export default function Dashboard() {
 
   const used = me.usage.usedToday;
   const limit = me.limits.dailyMessages;
-  const pct = Math.min(100, Math.round((used / Math.max(1, limit)) * 100));
+  const unlimited = isUnlimited(limit);
+  const pct = unlimited ? 0 : Math.min(100, Math.round((used / Math.max(1, limit)) * 100));
 
   return (
     <PageShell
@@ -157,13 +159,22 @@ export default function Dashboard() {
             <div>
               <p className="eyebrow">Today’s usage</p>
               <div className="mt-4 flex items-baseline gap-2">
-                <span className="font-display text-5xl text-ink-50">{formatNumber(me.usage.remainingToday)}</span>
-                <span className="text-sm text-ink-300">of {formatNumber(limit)} messages left</span>
+                {unlimited ? (
+                  <>
+                    <span className="font-display text-5xl text-ink-50">Unlimited</span>
+                    <span className="text-sm text-ink-300">messages ({formatNumber(used)} used today)</span>
+                  </>
+                ) : (
+                  <>
+                    <span className="font-display text-5xl text-ink-50">{formatNumber(me.usage.remainingToday)}</span>
+                    <span className="text-sm text-ink-300">of {formatNumber(limit)} messages left</span>
+                  </>
+                )}
               </div>
             </div>
-            <div className="text-right text-xs text-ink-300">Resets daily at 00:00 UTC</div>
+            <div className="text-right text-xs text-ink-300">{unlimited ? 'Fair-use rate limit applies' : 'Resets daily at 00:00 UTC'}</div>
           </div>
-          <div className="mt-5 h-1.5 overflow-hidden rounded-full bg-ink-700" role="progressbar" aria-valuenow={used} aria-valuemax={limit} aria-label="Daily usage">
+          <div className={`mt-5 h-1.5 overflow-hidden rounded-full bg-ink-700 ${unlimited ? 'hidden' : ''}`} role="progressbar" aria-valuenow={used} aria-valuemax={limit} aria-label="Daily usage">
             <div className="h-full rounded-full bg-ink-50 transition-all" style={{ width: `${pct}%` }} />
           </div>
           <div className="mt-8 grid grid-cols-3 gap-4 border-t border-ink-700 pt-5 text-sm">
@@ -210,8 +221,8 @@ export default function Dashboard() {
             if (t.id === 'free') return <button className="btn-secondary w-full" disabled>Included</button>;
             return (
               <div className="space-y-2">
-                {config.patreonJoinUrl ? (
-                  <a href={config.patreonJoinUrl} target="_blank" rel="noopener noreferrer" className="btn-primary w-full">Upgrade on Patreon <ExternalLink size={14} /></a>
+                {config.patreonJoinUrl ?? PATREON_URL ? (
+                  <a href={config.patreonJoinUrl ?? PATREON_URL} target="_blank" rel="noopener noreferrer" className="btn-primary w-full">Get Pro on Patreon <ExternalLink size={14} /></a>
                 ) : (
                   <button className="btn-primary w-full" disabled>Upgrade unavailable</button>
                 )}

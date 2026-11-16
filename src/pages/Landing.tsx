@@ -21,6 +21,7 @@ import { Logo, LogoMark } from '../components/ui/Logo';
 import { PlanCards } from '../components/ui/PlanCards';
 import { useAuth } from '../context/AuthContext';
 import { useDocTitle, usePublicConfig } from '../hooks/useMisc';
+import { PATREON_URL } from '../lib/config';
 
 function Navbar() {
   const { user } = useAuth();
@@ -241,7 +242,11 @@ export default function Landing() {
               ) : t.id === 'free' ? (
                 <Link to="/register" className="btn-secondary w-full">Start free</Link>
               ) : (
-                <Link to={user ? '/dashboard' : '/register'} className="btn-primary w-full">Get {t.name}</Link>
+                user ? (
+                  <a href={config.patreonJoinUrl ?? PATREON_URL} target="_blank" rel="noopener noreferrer" className="btn-primary w-full">Get {t.name}</a>
+                ) : (
+                  <Link to="/register" className="btn-primary w-full">Get {t.name}</Link>
+                )
               )
             }
           />

@@ -116,7 +116,7 @@ npx wrangler login
 4. The Durable Object (`UsageCounter`) is created automatically by the migration in `wrangler.toml` (SQLite-backed, available on the free plan).
 5. Put that URL into Vercel as `VITE_API_URL` (section 4) and into `PATREON_REDIRECT_URI` in `wrangler.toml` (`<url>/api/patreon/callback`), then redeploy the Worker.
 
-Tuning without code changes: `GUEST_MESSAGE_LIMIT` (default 5), `GUEST_IP_DAILY_LIMIT` (15), `RATE_LIMIT_PER_MINUTE` (12), and `TIER_CONFIG` (JSON overrides for price, daily messages, context size per tier). Defaults: Free 50 messages/day (counted across all chats, resets at 00:00 UTC), Pro 300/day, Ultimate 1000/day (disabled until `ENABLE_ULTIMATE=true`).
+Tuning without code changes: `GUEST_MESSAGE_LIMIT` (default 5), `GUEST_IP_DAILY_LIMIT` (15), `RATE_LIMIT_PER_MINUTE` (12), and `TIER_CONFIG` (JSON overrides for price, daily messages, context size per tier). Defaults: Free 50 messages/day (counted across all chats, resets at 00:00 UTC), Pro unlimited (100000/day cap, 12 requests/min rate limit), Ultimate 1000/day (disabled until `ENABLE_ULTIMATE=true`).
 
 ## 4. Firebase
 

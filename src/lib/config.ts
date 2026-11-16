@@ -37,3 +37,10 @@ export const GUEST_CONTEXT_CHARS = 60_000;
 /** Conversations are kept for this many days after they were started, then deleted. */
 export const RETENTION_DAYS = 7;
 export const RETENTION_MS = RETENTION_DAYS * 24 * 60 * 60 * 1000;
+
+/** Where "Get Pro" sends people. Memberships are sold on Patreon. */
+export const PATREON_URL = (import.meta.env.VITE_PATREON_URL as string | undefined) || 'https://www.patreon.com/cw/Duozesty';
+
+/** Plans whose daily allowance is at least this are shown as "Unlimited". */
+export const UNLIMITED_FROM = 10_000;
+export const isUnlimited = (dailyMessages: number): boolean => dailyMessages >= UNLIMITED_FROM;

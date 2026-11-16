@@ -405,7 +405,7 @@ console.log('admin');
   });
   check('admin can grant pro', set.status === 200 && store.users.get('user1')!.membership.tier === 'pro');
   const me = await (await call('/api/me', { headers: { Authorization: `Bearer ${user}` } })).json();
-  check('user now has pro limits', me.tier === 'pro' && me.limits.dailyMessages === 300);
+  check('user now has pro limits', me.tier === 'pro' && me.limits.dailyMessages === 100000);
   await call('/api/admin/users/user1', {
     method: 'POST',
     headers: { Authorization: `Bearer ${admin}`, 'Content-Type': 'application/json' },

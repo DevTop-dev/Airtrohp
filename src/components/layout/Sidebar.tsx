@@ -1,13 +1,13 @@
 import { useState } from 'react';
 import { Link, NavLink, useNavigate, useParams } from 'react-router-dom';
-import { Check, FolderGit2, LayoutDashboard, LogOut, MessageSquare, Pencil, Plus, Settings, Shield, Trash2, X } from 'lucide-react';
+import { Check, FolderGit2, LayoutDashboard, LogOut, MessageSquare, Pencil, Plus, Settings, Shield, Sparkles, Trash2, X } from 'lucide-react';
 import clsx from 'clsx';
 import { Logo } from '../ui/Logo';
 import { useAuth } from '../../context/AuthContext';
 import { useStorage } from '../../context/StorageContext';
 import { useToast } from '../../context/ToastContext';
 import type { ConversationMeta } from '../../lib/types';
-import { RETENTION_DAYS } from '../../lib/config';
+import { PATREON_URL, RETENTION_DAYS } from '../../lib/config';
 
 function ConversationItem({ c, active, onNavigate }: { c: ConversationMeta; active: boolean; onNavigate: () => void }) {
   const { storage } = useStorage();
@@ -113,6 +113,14 @@ export function Sidebar({ onNavigate }: { onNavigate: () => void }) {
           </div>
         )}
       </div>
+
+      {signedIn && me && me.tier === 'free' && (
+        <div className="px-3 pb-2">
+          <a href={PATREON_URL} target="_blank" rel="noopener noreferrer" className="btn-primary w-full gap-2">
+            <Sparkles size={15} /> Get Pro
+          </a>
+        </div>
+      )}
 
       {signedIn && (
         <nav className="border-t border-ink-800 px-3 py-3" aria-label="Account navigation">

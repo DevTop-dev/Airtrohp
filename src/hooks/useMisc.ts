@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { getPublicConfig } from '../lib/api';
 import type { PublicConfig } from '../lib/types';
+import { PATREON_URL } from '../lib/config';
 
 export function useDocTitle(title?: string) {
   useEffect(() => {
@@ -12,10 +13,10 @@ export function useDocTitle(title?: string) {
 export const FALLBACK_CONFIG: PublicConfig = {
   guestLimit: 5,
   patreonEnabled: false,
-  patreonJoinUrl: null,
+  patreonJoinUrl: PATREON_URL,
   tiers: [
-    { id: 'free', name: 'Free', priceUsd: 0, dailyMessages: 20, maxContextChars: 100000, enabled: true, features: ['Basic AI coding assistance', 'Conversation history', 'Standard features'] },
-    { id: 'pro', name: 'Airtrohp Pro', priceUsd: 9.99, dailyMessages: 300, maxContextChars: 500000, enabled: true, features: ['Higher AI usage limits', 'Advanced coding assistance', 'Multi-file project assistance', 'Priority access to new features'] },
+    { id: 'free', name: 'Free', priceUsd: 0, dailyMessages: 50, maxContextChars: 100000, enabled: true, features: ['Basic AI coding assistance', '50 AI messages per day across all chats', 'Conversation history (kept for 7 days)'] },
+    { id: 'pro', name: 'Airtrohp Pro', priceUsd: 9.99, dailyMessages: 100000, maxContextChars: 500000, enabled: true, features: ['Unlimited AI messages (fair-use rate limit applies)', 'Advanced coding assistance', 'Multi-file project assistance', 'Priority access to new features'] },
     { id: 'ultimate', name: 'Airtrohp Ultimate', priceUsd: 0, dailyMessages: 0, maxContextChars: 0, enabled: false, features: ['Coming soon'] },
   ],
 };

@@ -32,12 +32,12 @@ const DEFAULT_TIERS: Record<TierId, TierConfig> = {
     id: 'pro',
     name: 'Airtrohp Pro',
     priceUsd: 9.99,
-    dailyMessages: 300,
+    dailyMessages: 100_000, // effectively unlimited; the per-minute rate limit still applies
     maxContextChars: 500_000,
     model: 'advanced',
     enabled: true,
     features: [
-      'Higher AI usage limits (300 messages per day)',
+      'Unlimited AI messages (fair-use rate limit applies)',
       'Advanced coding assistance and debugging',
       'Multi-file project assistance',
       'Up to 500k characters of project context',

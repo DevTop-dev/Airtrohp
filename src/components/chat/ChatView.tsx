@@ -7,7 +7,7 @@ import { useToast } from '../../context/ToastContext';
 import { useChat } from '../../hooks/useChat';
 import { ensureGuestSession } from '../../lib/guest';
 import { listFiles, listProjects, putFiles } from '../../lib/workspace';
-import { GUEST_CONTEXT_CHARS, MAX_ATTACH_CHARS } from '../../lib/config';
+import { GUEST_CONTEXT_CHARS, MAX_ATTACH_CHARS, PATREON_URL, isUnlimited } from '../../lib/config';
 import type { Project } from '../../lib/types';
 import { LogoMark } from '../ui/Logo';
 import { Notice, Spinner } from '../ui/Feedback';
@@ -145,7 +145,9 @@ export function ChatView({ conversationId }: { conversationId?: string }) {
       ? null
       : guest
         ? `${Math.max(0, quota.remaining)} of ${quota.limit} free messages left`
-        : `${Math.max(0, quota.remaining)} messages left today`;
+        : isUnlimited(quota.limit)
+          ? 'Unlimited messages'
+          : `${Math.max(0, quota.remaining)} messages left today`;
 
   const empty = !loading && !notFound && messages.length === 0;
   const gate = (
@@ -229,7 +231,7 @@ export function ChatView({ conversationId }: { conversationId?: string }) {
         <div className="min-w-0 truncate text-sm text-ink-200">{convMeta?.title ?? (conversationId ? '' : 'New conversation')}</div>
         {quotaLabel && (
           <span
-            className={`shrink-0 rounded-full border px-3 py-1 text-xs ${quota!.remaining <= (guest ? 1 : 3) ? 'border-ink-100 text-ink-50' : 'border-ink-600 text-ink-300'}`}
+            className={`shrink-0 rounded-full border px-3 py-1 text-xs ${!isUnlimited(quota!.limit) && quota!.remaining <= (guest ? 1 : 3) ? 'border-ink-100 text-ink-50' : 'border-ink-600 text-ink-300'}`}
             aria-live="polite"
             data-testid="message-counter"
           >
@@ -336,7 +338,10 @@ function DailyLimit({ limit, resetsAt, onExpire }: { limit: number; resetsAt: nu
         <p className="mt-1 text-sm text-ink-300">You can chat again in</p>
         <div className="mt-2 font-mono text-4xl tracking-wider text-ink-50" data-testid="limit-countdown">{formatCountdown(left)}</div>
         <p className="mt-2 text-xs text-ink-400">Your allowance resets today at {at} (your local time).</p>
-        <Link to="/dashboard" className="btn-secondary btn-sm mt-5">View plans</Link>
+        <div className="mt-5 flex flex-wrap justify-center gap-2">
+          <a href={PATREON_URL} target="_blank" rel="noopener noreferrer" className="btn-primary btn-sm">Get Pro for unlimited chat</a>
+          <Link to="/dashboard" className="btn-secondary btn-sm">View plans</Link>
+        </div>
       </div>
     </div>
   );
