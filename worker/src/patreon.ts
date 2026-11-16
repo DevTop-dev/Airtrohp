@@ -206,11 +206,11 @@ export class PatreonService {
 
   async disconnect(uid: string): Promise<void> {
     const user = await this.store.getUser(uid);
-    if (user?.membership.source === 'patreon') {
-      if (user.membership.patreonUserId) await this.store.deletePatreonLink(user.membership.patreonUserId);
-      await this.store.deletePatreonTokens(uid);
-      await this.store.setMembership(uid, FREE_MEMBERSHIP);
-    }
+    if (!user) return;
+    if (user.membership.patreonUserId) await this.store.deletePatreonLink(user.membership.patreonUserId);
+    await this.store.deletePatreonTokens(uid);
+    // Only drop the plan if it came from Patreon (keep admin-assigned plans).
+    if (user.membership.source === 'patreon') await this.store.setMembership(uid, FREE_MEMBERSHIP);
   }
 
   /** Webhook: verify the HMAC-MD5 signature over the raw body, then apply the event. */
