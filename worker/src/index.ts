@@ -41,7 +41,7 @@ async function readJson(request: Request): Promise<Record<string, unknown>> {
 }
 
 export async function handleRequest(request: Request, env: Env, ctx: Ctx, partial: Partial<Deps> = {}): Promise<Response> {
-  const fetcher = partial.fetch ?? fetch;
+  const fetcher: typeof fetch = partial.fetch ?? ((input, init) => fetch(input, init));
   const deps: Deps = {
     fetch: fetcher,
     now: partial.now ?? Date.now,
