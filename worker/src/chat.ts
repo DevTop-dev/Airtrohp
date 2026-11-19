@@ -187,7 +187,8 @@ export async function handleChat(request: Request, env: Env, ctx: Ctx, deps: Cha
   } catch (e) {
     await refund();
     console.error('Gemini fetch failed', e);
-    throw new HttpError(502, 'AI_UPSTREAM_ERROR', 'The AI service could not be reached. Please try again.');
+    const why = (e instanceof Error ? `${e.name}: ${e.message}` : String(e)).replace(/\s+/g, ' ').slice(0, 160);
+    throw new HttpError(502, 'AI_UPSTREAM_ERROR', `The AI service could not be reached. Please try again. (${why})`);
   }
   if (!upstream.ok || !upstream.body) {
     await refund();
