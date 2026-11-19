@@ -180,7 +180,7 @@ export async function handleChat(request: Request, env: Env, ctx: Ctx, deps: Cha
     upstream = await callGeminiResilient(
       env,
       deps.fetch,
-      [modelFor(env, tier), env.GEMINI_MODEL_FALLBACK ?? DEFAULT_MODEL_FALLBACK],
+      [modelFor(env, tier), env.GEMINI_MODEL_FALLBACK ?? DEFAULT_MODEL_FALLBACK, 'gemini-3.6-flash', 'gemini-3.5-flash-lite', 'gemini-3.1-flash-lite'],
       buildGeminiBody(input),
       controller.signal,
     );

@@ -191,7 +191,7 @@ export async function callGeminiResilient(
         continue;
       }
       if (!RETRYABLE.has(last.status)) return last;
-      if (attempt === 0) await sleep(400);
+      if (attempt === 0) await sleep(300);
     }
   }
   if (last) return last;
