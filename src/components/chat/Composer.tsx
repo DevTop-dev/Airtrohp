@@ -5,6 +5,7 @@ import { formatBytes } from '../../lib/format';
 import { getPrefs } from '../../lib/prefs';
 import type { AttachedFile } from '../../lib/types';
 import { useToast } from '../../context/ToastContext';
+import { ModelPicker } from './ModelPicker';
 
 interface Props {
   streaming: boolean;
@@ -164,6 +165,7 @@ export function Composer({ streaming, disabled, disabledReason, maxAttachChars, 
                 e.target.value = '';
               }}
             />
+            <ModelPicker disabled={disabled || streaming} />
             {toolbar}
           </div>
           {streaming ? (

@@ -13,6 +13,7 @@ export interface ChatMessageIn {
 export interface ChatInput {
   messages: ChatMessageIn[];
   context: ChatFile[]; // project workspace files
+  provider?: string; // which AI the user picked (optional; 'auto' or missing = default order)
 }
 
 export const SYSTEM_PROMPT = `You are Airtrohp, a smart, friendly all-round AI assistant built by the Airtrohp team.

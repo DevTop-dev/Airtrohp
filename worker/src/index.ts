@@ -4,6 +4,7 @@ import { isAdmin, issueGuestToken, requireUser, verifyGuestToken } from './auth'
 import { handleChat, ipHash, type ChatDeps } from './chat';
 import { getTiers, guestLimit } from './config';
 import { FirestoreStore } from './firestore';
+import { listProviders } from './providers';
 import { PatreonService, buildAuthorizeUrl, patreonConfigured, verifyState } from './patreon';
 import { entitlement, type Store } from './store';
 import { Counters } from './usage';
@@ -80,6 +81,8 @@ export async function handleRequest(request: Request, env: Env, ctx: Ctx, partia
           features: t.features,
         })),
       });
+    } else if (path === '/api/models' && method === 'GET') {
+      res = json({ models: listProviders(env) });
     } else if (path === '/api/guest/session' && method === 'POST') {
       res = await guestSession(request, env, counters, deps);
     } else if (path === '/api/chat' && method === 'POST') {

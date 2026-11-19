@@ -12,7 +12,7 @@ import {
   type ChatInput,
   type ChatMessageIn,
 } from './gemini';
-import { callFallbackProviders } from './providers';
+import { callFallbackProviders, listProviders } from './providers';
 import { entitlement, type Store } from './store';
 import type { Counters } from './usage';
 import { HttpError, nextUtcMidnight, enc, sha256Hex, utcDay } from './utils';
@@ -63,7 +63,8 @@ export function validateChatBody(raw: unknown): ChatInput {
   if (last.role !== 'user' || !(last.content.trim() || last.files?.length)) {
     throw new HttpError(400, 'BAD_REQUEST', 'The last message must be a non-empty user message');
   }
-  return { messages, context: parseFiles(b.context, MAX_CONTEXT_FILES) };
+  const provider = typeof b.provider === 'string' && /^[a-z0-9-]{1,30}$/.test(b.provider) ? b.provider : undefined;
+  return { messages, context: parseFiles(b.context, MAX_CONTEXT_FILES), provider };
 }
 
 function clientIp(req: Request): string {
@@ -179,23 +180,36 @@ export async function handleChat(request: Request, env: Env, ctx: Ctx, deps: Cha
   const geminiBody = buildGeminiBody(input);
   let upstream: Response | undefined;
   let geminiError: unknown;
-  try {
-    upstream = await callGeminiResilient(
-      env,
-      deps.fetch,
-      [modelFor(env, tier), env.GEMINI_MODEL_FALLBACK ?? DEFAULT_MODEL_FALLBACK, 'gemini-3.6-flash', 'gemini-3.5-flash-lite', 'gemini-3.1-flash-lite'],
-      geminiBody,
-      controller.signal,
-    );
-  } catch (e) {
-    geminiError = e;
-    console.error('Gemini fetch failed', e);
+  let answeredBy = 'gemini';
+  // If the user picked a specific non-Gemini AI that is available, try it first.
+  const picked = input.provider && input.provider !== 'auto' && input.provider !== 'gemini' && listProviders(env).some((p) => p.id === input.provider) ? input.provider : undefined;
+  if (picked) {
+    const first = await callFallbackProviders(env, deps.fetch, geminiBody, controller.signal, picked).catch(() => null);
+    if (first) {
+      upstream = first.response;
+      answeredBy = first.provider;
+    }
+  }
+  if (!upstream) {
+    try {
+      upstream = await callGeminiResilient(
+        env,
+        deps.fetch,
+        [modelFor(env, tier), env.GEMINI_MODEL_FALLBACK ?? DEFAULT_MODEL_FALLBACK, 'gemini-3.6-flash', 'gemini-3.5-flash-lite', 'gemini-3.1-flash-lite'],
+        geminiBody,
+        controller.signal,
+      );
+    } catch (e) {
+      geminiError = e;
+      console.error('Gemini fetch failed', e);
+    }
   }
   if (!upstream || !upstream.ok || !upstream.body) {
     const fb = await callFallbackProviders(env, deps.fetch, geminiBody, controller.signal).catch(() => null);
     if (fb) {
       console.log('answered by fallback provider', fb.provider);
       upstream = fb.response;
+      answeredBy = fb.provider;
     }
   }
   if (!upstream) {
@@ -238,7 +252,7 @@ export async function handleChat(request: Request, env: Env, ctx: Ctx, deps: Cha
       let finish: string | undefined;
       let blocked: string | undefined;
       try {
-        send({ type: 'meta', remaining, limit: quotaLimit, tier: principal.kind === 'guest' ? 'guest' : tier.id });
+        send({ type: 'meta', provider: answeredBy, remaining, limit: quotaLimit, tier: principal.kind === 'guest' ? 'guest' : tier.id });
         while (true) {
           const { done, value } = await reader.read();
           if (done) break;

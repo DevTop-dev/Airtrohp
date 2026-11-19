@@ -1,3 +1,4 @@
+import { getSelectedProvider } from './models';
 import { API_URL } from './config';
 import { auth } from './firebase';
 import { clearGuestToken, ensureGuestSession, getGuestToken } from './guest';
@@ -88,7 +89,7 @@ export interface ChatRequestMessage {
 }
 
 export type StreamEvent =
-  | { type: 'meta'; remaining: number; limit: number; tier: string }
+  | { type: 'meta'; remaining: number; limit: number; tier: string; provider?: string }
   | { type: 'delta'; text: string }
   | { type: 'done'; finishReason: string; usage: { promptTokens: number; outputTokens: number }; remaining: number }
   | { type: 'error'; code: string; message: string; remaining?: number };
@@ -111,7 +112,7 @@ export async function streamChat(
     res = await fetch(`${API_URL}/api/chat`, {
       method: 'POST',
       headers,
-      body: JSON.stringify({ messages: payload.messages, context: payload.context ?? [] }),
+      body: JSON.stringify({ messages: payload.messages, context: payload.context ?? [], provider: getSelectedProvider() }),
       signal: handlers.signal,
     });
   } catch (e) {

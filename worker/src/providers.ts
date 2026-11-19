@@ -122,6 +122,21 @@ async function withDeadline<T>(ms: number, outer: AbortSignal | undefined, run: 
   }
 }
 
+export interface ProviderInfo {
+  id: string;
+  name: string;
+  model: string;
+}
+
+/** Every AI the user can pick from: Gemini plus each free provider that is configured. */
+export function listProviders(env: Env): ProviderInfo[] {
+  const out: ProviderInfo[] = [{ id: 'gemini', name: 'Gemini', model: env.GEMINI_MODEL ?? 'gemini-3.5-flash-lite' }];
+  const labels: Record<string, string> = { groq: 'Groq', cerebras: 'Cerebras', openrouter: 'OpenRouter', mistral: 'Mistral' };
+  for (const p of openAiProviders(env)) if (p.key) out.push({ id: p.name, name: labels[p.name] ?? p.name, model: p.model });
+  if (env.AI) out.push({ id: 'workers-ai', name: 'Cloudflare AI', model: env.WORKERS_AI_MODEL ?? WORKERS_AI_MODEL });
+  return out;
+}
+
 /** Names of the fallback providers that are currently usable (for diagnostics). */
 export function availableFallbacks(env: Env): string[] {
   const names = openAiProviders(env)
@@ -132,12 +147,19 @@ export function availableFallbacks(env: Env): string[] {
 }
 
 /** Tries each configured free provider in turn. Returns a Gemini-style SSE Response, or null if none worked. */
-export async function callFallbackProviders(env: Env, fetcher: typeof fetch, body: unknown, signal?: AbortSignal): Promise<{ response: Response; provider: string } | null> {
+export async function callFallbackProviders(
+  env: Env,
+  fetcher: typeof fetch,
+  body: unknown,
+  signal?: AbortSignal,
+  only?: string,
+): Promise<{ response: Response; provider: string } | null> {
   const messages = toMessages(body as GeminiBodyLike);
   if (!messages.some((m) => m.role === 'user')) return null;
 
   for (const p of openAiProviders(env)) {
     if (!p.key || signal?.aborted) continue;
+    if (only && p.name !== only) continue;
     try {
       const res = await withDeadline(FIRST_BYTE_TIMEOUT_MS, signal, (s) =>
         fetcher(p.url, {
@@ -154,7 +176,7 @@ export async function callFallbackProviders(env: Env, fetcher: typeof fetch, bod
     }
   }
 
-  if (env.AI && !signal?.aborted) {
+  if (env.AI && !signal?.aborted && (!only || only === 'workers-ai')) {
     try {
       const out = await withDeadline(FIRST_BYTE_TIMEOUT_MS, signal, () =>
         (env.AI as NonNullable<Env['AI']>).run(env.WORKERS_AI_MODEL ?? WORKERS_AI_MODEL, { messages, stream: true, max_tokens: 4096 }),
