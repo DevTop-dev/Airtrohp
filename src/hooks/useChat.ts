@@ -46,7 +46,7 @@ export function trimHistory(history: ChatMessage[], budget: number): ChatMessage
 const toApi = (m: ChatMessage): ChatRequestMessage => ({
   role: m.role,
   content: m.content,
-  files: m.files?.map((f) => ({ name: f.name, content: f.content })),
+  files: m.files?.map((f) => ({ name: f.name, content: f.content, mime: f.mime })),
 });
 
 export function useChat({ storage, conversationId, onConversationCreated, maxChars, projectId, loadContext }: Args) {

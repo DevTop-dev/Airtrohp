@@ -111,7 +111,21 @@ function InlineBlock({ lang, raw, children }: { lang: string; raw: string; child
   );
 }
 
+const PLAIN_LANGS = new Set(['', 'text', 'txt', 'plaintext', 'log', 'console', 'output', 'bash-output']);
+
+/** Short, stable id from the content so two unnamed blocks in one message get different names. */
+function shortHash(s: string): string {
+  let h = 5381;
+  for (let i = 0; i < s.length; i++) h = ((h << 5) + h + s.charCodeAt(i)) | 0;
+  return (h >>> 0).toString(16).slice(0, 5);
+}
+
 export function CodeBlock({ lang, path, raw, children }: Props) {
   if (path) return <FileCard lang={lang} path={path} raw={raw} />;
+  // Longer code without a declared path is also shown as a downloadable file card.
+  const lines = raw ? raw.split('\n').length : 0;
+  if (lines >= 12 && !PLAIN_LANGS.has(lang.toLowerCase())) {
+    return <FileCard lang={lang} path={`code-${shortHash(raw.slice(0, 200))}.${extensionFor(lang)}`} raw={raw} />;
+  }
   return <InlineBlock lang={lang} raw={raw}>{children}</InlineBlock>;
 }

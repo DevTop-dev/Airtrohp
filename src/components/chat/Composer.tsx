@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState, type DragEvent, type ReactNode } from 'react';
-import { ArrowUp, FileCode2, Paperclip, Square, X } from 'lucide-react';
+import { ArrowUp, FileCode2, ImageIcon, Paperclip, Square, X } from 'lucide-react';
 import { readFiles } from '../../lib/files';
 import { formatBytes } from '../../lib/format';
 import { getPrefs } from '../../lib/prefs';
@@ -18,7 +18,7 @@ interface Props {
   prefill?: { text: string; nonce: number } | null;
 }
 
-const ACCEPT = '.zip,.js,.jsx,.mjs,.cjs,.ts,.tsx,.json,.html,.css,.scss,.md,.txt,.py,.php,.java,.kt,.swift,.c,.h,.cpp,.hpp,.cs,.go,.rs,.sql,.sh,.yml,.yaml,.toml,.xml,.vue,.svelte,.env,.csv,.dockerfile,text/*';
+const ACCEPT = 'image/*,.zip,.js,.jsx,.mjs,.cjs,.ts,.tsx,.json,.html,.css,.scss,.md,.txt,.py,.php,.java,.kt,.swift,.c,.h,.cpp,.hpp,.cs,.go,.rs,.sql,.sh,.yml,.yaml,.toml,.xml,.vue,.svelte,.env,.csv,.dockerfile,text/*';
 
 export function Composer({ streaming, disabled, disabledReason, maxAttachChars, toolbar, onSend, onStop, prefill }: Props) {
   const [text, setText] = useState('');
@@ -43,7 +43,7 @@ export function Composer({ streaming, disabled, disabledReason, maxAttachChars, 
     el.style.height = `${Math.min(el.scrollHeight, 220)}px`;
   }, [text]);
 
-  const total = files.reduce((n, f) => n + f.content.length, 0);
+  const total = files.reduce((n, f) => n + (f.mime ? 0 : f.content.length), 0);
 
   const addFiles = useCallback(
     async (list: File[]) => {
@@ -51,15 +51,16 @@ export function Composer({ streaming, disabled, disabledReason, maxAttachChars, 
       setBusy(true);
       try {
         const r = await readFiles(list);
-        let used = files.reduce((n, f) => n + f.content.length, 0);
+        let used = files.reduce((n, f) => n + (f.mime ? 0 : f.content.length), 0);
         const accepted: AttachedFile[] = [];
         let over = 0;
         for (const f of r.files) {
-          if (used + f.content.length > maxAttachChars) {
+          const chars = f.mime ? 0 : f.content.length;
+          if (used + chars > maxAttachChars) {
             over++;
             continue;
           }
-          used += f.content.length;
+          used += chars;
           accepted.push(f);
         }
         setFiles((prev) => {
@@ -110,7 +111,7 @@ export function Composer({ streaming, disabled, disabledReason, maxAttachChars, 
           <div className="flex flex-wrap gap-2 border-b border-ink-700 px-3 pb-2 pt-3">
             {files.map((f) => (
               <span key={f.name} className="inline-flex items-center gap-1.5 rounded-md border border-ink-600 bg-ink-800 py-1 pl-2 pr-1 font-mono text-xs text-ink-100">
-                <FileCode2 size={13} />
+                {f.mime ? <ImageIcon size={13} /> : <FileCode2 size={13} />}
                 <span className="max-w-[160px] truncate" title={f.name}>{f.name}</span>
                 <span className="text-ink-400">{formatBytes(f.size)}</span>
                 <button className="rounded p-0.5 text-ink-300 hover:bg-ink-600 hover:text-ink-50" onClick={() => setFiles((p) => p.filter((x) => x.name !== f.name))} aria-label={`Remove ${f.name}`}>
@@ -149,8 +150,8 @@ export function Composer({ streaming, disabled, disabledReason, maxAttachChars, 
               onClick={() => input.current?.click()}
               disabled={disabled || busy}
               className="inline-flex h-9 w-9 items-center justify-center rounded-full text-ink-300 transition hover:bg-ink-700 hover:text-ink-50 disabled:opacity-40"
-              aria-label="Attach files or a ZIP project"
-              title="Attach files or a ZIP project"
+              aria-label="Attach photos, files or a ZIP project"
+              title="Attach photos, files or a ZIP project"
             >
               <Paperclip size={17} />
             </button>

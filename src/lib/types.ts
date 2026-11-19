@@ -40,8 +40,10 @@ export interface UsageDay {
 
 export interface AttachedFile {
   name: string;
+  /** Text content, or base64 image data (without the data: prefix) when `mime` is set. */
   content: string;
   size: number;
+  mime?: string;
 }
 
 export interface ChatMessage {

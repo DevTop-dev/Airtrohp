@@ -97,10 +97,58 @@ export function extractZip(data: Uint8Array): ReadResult {
   return out;
 }
 
+/** Shrinks a photo in the browser (max 1280 px, JPEG) so it is small enough to send and store. Returns base64 without the data: prefix. */
+async function compressImage(file: File): Promise<{ data: string; size: number } | null> {
+  try {
+    const bmp = await createImageBitmap(file);
+    const scale = Math.min(1, 1280 / Math.max(bmp.width, bmp.height));
+    const w = Math.max(1, Math.round(bmp.width * scale));
+    const h = Math.max(1, Math.round(bmp.height * scale));
+    const canvas = document.createElement('canvas');
+    canvas.width = w;
+    canvas.height = h;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return null;
+    ctx.fillStyle = '#fff';
+    ctx.fillRect(0, 0, w, h);
+    ctx.drawImage(bmp, 0, 0, w, h);
+    bmp.close?.();
+    for (const q of [0.78, 0.65, 0.5, 0.38]) {
+      const blob: Blob | null = await new Promise((r) => canvas.toBlob(r, 'image/jpeg', q));
+      if (!blob) return null;
+      if (blob.size <= 260_000 || q === 0.38) {
+        const buf = new Uint8Array(await blob.arrayBuffer());
+        let bin = '';
+        for (let i = 0; i < buf.length; i += 0x8000) bin += String.fromCharCode(...buf.subarray(i, i + 0x8000));
+        return { data: btoa(bin), size: blob.size };
+      }
+    }
+  } catch {
+    /* unsupported format (for example HEIC in some browsers) */
+  }
+  return null;
+}
+
+export const MAX_IMAGES = 4;
+
 export async function readFiles(list: File[]): Promise<ReadResult> {
   const out: ReadResult = { files: [], skipped: [] };
+  let images = 0;
   for (const file of list) {
     const lower = file.name.toLowerCase();
+    if (file.type.startsWith('image/') || /\.(png|jpe?g|webp|gif|heic|heif)$/.test(lower)) {
+      if (images >= MAX_IMAGES) {
+        out.skipped.push({ name: file.name, reason: `at most ${MAX_IMAGES} images per message` });
+        continue;
+      }
+      const c = file.size > 25 * 1024 * 1024 ? null : await compressImage(file);
+      if (!c) out.skipped.push({ name: file.name, reason: 'could not read this image' });
+      else {
+        images++;
+        out.files.push({ name: file.name.replace(/\.[^.]+$/, '') + '.jpg', content: c.data, size: c.size, mime: 'image/jpeg' });
+      }
+      continue;
+    }
     if (lower.endsWith('.zip')) {
       if (file.size > MAX_ZIP_BYTES) {
         out.skipped.push({ name: file.name, reason: `ZIP larger than ${MAX_ZIP_BYTES / 1024 / 1024} MB` });

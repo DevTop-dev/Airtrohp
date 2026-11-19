@@ -85,7 +85,7 @@ export function getPublicConfig(): Promise<PublicConfig> {
 export interface ChatRequestMessage {
   role: 'user' | 'model';
   content: string;
-  files?: Pick<AttachedFile, 'name' | 'content'>[];
+  files?: Pick<AttachedFile, 'name' | 'content' | 'mime'>[];
 }
 
 export type StreamEvent =

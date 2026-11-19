@@ -3,7 +3,8 @@ import type { TierConfig } from './config';
 
 export interface ChatFile {
   name: string;
-  content: string;
+  content: string; // text, or base64 image data when `mime` is set
+  mime?: string;
 }
 export interface ChatMessageIn {
   role: 'user' | 'model';
@@ -26,7 +27,7 @@ Language: reply in the language the user writes in (for example Hungarian if the
 Style:
 - Be accurate, clear and direct, and match the length to the question: short for simple questions, thorough for complex ones. Do not pad answers.
 - Use GitHub-flavoured Markdown. Put all code in fenced code blocks with a language tag.
-- When you output a code file that belongs in a project, put its path in the fence info string like this: \`\`\`ts file=src/index.ts   (the user can download these files). Use one fenced block per file and always include the full file content when you create or rewrite a file. Do not use this for ordinary snippets or non-code answers.
+- When you output a code file that belongs in a project, put its path in the fence info string like this: \`\`\`ts file=src/index.ts   (the user can download these files). Use one fenced block per file and always include the full file content when you create or rewrite a file. ALWAYS deliver any code longer than about 10 lines, and every complete file, script, config or page, this way as a named file with `file=` (choose a sensible file name such as index.html or bot.js), because users get a downloadable file card. Only tiny one-line commands or short illustrative snippets may be plain code blocks. Do not use this for non-code answers.
 - If a request is ambiguous in a way that matters, state your assumption briefly and continue.
 - If you are not sure of a fact, say so instead of guessing. You cannot browse the internet and your knowledge has a cut-off date.
 - Keep the conversation context in mind. Uploaded files appear as "Attached file" blocks or as project files.
@@ -42,6 +43,7 @@ function fence(content: string): string {
 
 export function formatFiles(files: ChatFile[], heading: string): string {
   return files
+    .filter((f) => !f.mime)
     .map((f) => {
       const f3 = fence(f.content);
       return `[${heading}: ${f.name}]\n${f3}\n${f.content}\n${f3}`;
@@ -53,7 +55,7 @@ export function chatInputSize(input: ChatInput): number {
   let n = 0;
   for (const m of input.messages) {
     n += m.content.length;
-    for (const f of m.files ?? []) n += f.content.length + f.name.length;
+    for (const f of m.files ?? []) n += f.mime ? f.name.length : f.content.length + f.name.length;
   }
   for (const f of input.context) n += f.content.length + f.name.length;
   return n;
@@ -69,14 +71,23 @@ export function buildGeminiBody(input: ChatInput) {
   }
 
   const contents: Array<{ role: 'user' | 'model'; parts: Array<{ text: string }> }> = [];
-  for (const m of input.messages) {
+  const lastUser = input.messages.length - 1;
+  input.messages.forEach((m, mi) => {
     let text = m.content;
     if (m.files?.length) text += `\n\n${formatFiles(m.files, 'Attached file')}`;
-    if (!text.trim()) continue;
+    const parts: Array<Record<string, unknown>> = [];
+    // Photos: only the newest message's images are sent (older ones are noted), to keep requests small and fast.
+    const imgs = (m.files ?? []).filter((f) => f.mime);
+    if (imgs.length) {
+      if (mi === lastUser) for (const f of imgs) parts.push({ inlineData: { mimeType: f.mime, data: f.content } });
+      else text += `\n\n[${imgs.length} earlier image(s) omitted]`;
+    }
+    if (text.trim()) parts.unshift({ text });
+    if (!parts.length) return;
     const last = contents[contents.length - 1];
-    if (last && last.role === m.role) last.parts.push({ text });
-    else contents.push({ role: m.role, parts: [{ text }] });
-  }
+    if (last && last.role === m.role) last.parts.push(...(parts as Array<{ text: string }>));
+    else contents.push({ role: m.role, parts: parts as Array<{ text: string }> });
+  });
   while (contents.length && contents[0].role !== 'user') contents.shift();
 
   return {

@@ -40,7 +40,8 @@ function parseFiles(v: unknown, limit: number): ChatFile[] {
   if (!Array.isArray(v) || v.length > limit) throw new HttpError(400, 'BAD_REQUEST', 'Invalid files');
   return v.map((f) => {
     const o = f as Record<string, unknown>;
-    return { name: str(o?.name, 300, 'file name'), content: str(o?.content, 900_000, 'file content') };
+    const mime = typeof o?.mime === 'string' && /^image\/(jpeg|png|webp|gif)$/.test(o.mime) ? o.mime : undefined;
+    return { name: str(o?.name, 300, 'file name'), content: str(o?.content, 900_000, 'file content'), ...(mime ? { mime } : {}) };
   });
 }
 
@@ -187,7 +188,9 @@ export async function handleChat(request: Request, env: Env, ctx: Ctx, deps: Cha
   // "Auto" (or Smart): when very fast providers are configured, try them first for the quickest first token.
   const wantsGemini = wanted === 'gemini';
   const fastFirst = !wantsGemini && !userPick ? ['groq', 'cerebras'] : undefined;
-  const picked: string | string[] | undefined = userPick ?? fastFirst;
+  // Photos need a vision model: only Gemini is used for them.
+  const hasImages = input.messages.some((m) => m.files?.some((f) => f.mime));
+  const picked: string | string[] | undefined = hasImages ? undefined : userPick ?? fastFirst;
   if (picked) {
     const first = await callFallbackProviders(env, deps.fetch, geminiBody, controller.signal, picked).catch(() => null);
     if (first) {
@@ -209,7 +212,7 @@ export async function handleChat(request: Request, env: Env, ctx: Ctx, deps: Cha
       console.error('Gemini fetch failed', e);
     }
   }
-  if (!upstream || !upstream.ok || !upstream.body) {
+  if (!hasImages && (!upstream || !upstream.ok || !upstream.body)) {
     const fb = await callFallbackProviders(env, deps.fetch, geminiBody, controller.signal).catch(() => null);
     if (fb) {
       console.log('answered by fallback provider', fb.provider);

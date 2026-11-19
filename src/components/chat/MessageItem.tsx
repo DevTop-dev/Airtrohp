@@ -86,11 +86,15 @@ function MessageItemImpl({ message, isLast, streaming, initial, canEdit, onEdit,
           {message.files && message.files.length > 0 && (
             <div className={`mt-2 flex flex-wrap gap-2 ${isUser ? 'justify-end' : ''}`}>
               {message.files.map((f) => (
+                f.mime ? (
+                  <img key={f.name} src={`data:${f.mime};base64,${f.content}`} alt={f.name} className="max-h-40 max-w-[220px] rounded-xl border border-ink-600 object-cover" />
+                ) : (
                 <span key={f.name} className="inline-flex items-center gap-1.5 rounded-lg border border-ink-600 bg-ink-850 px-2.5 py-1.5 font-mono text-xs text-ink-200" title={f.name}>
                   <FileCode2 size={13} />
                   <span className="max-w-[180px] truncate">{f.name}</span>
                   <span className="text-ink-400">{formatBytes(f.size)}</span>
                 </span>
+                )
               ))}
             </div>
           )}
