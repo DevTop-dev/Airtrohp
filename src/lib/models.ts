@@ -8,7 +8,7 @@ export interface AiModel {
 }
 
 const KEY = 'airtrohp.provider.v1';
-export const AUTO: AiModel = { id: 'auto', name: 'Airtrohp Auto', model: 'Airtrohp picks the best available AI' };
+export const AUTO: AiModel = { id: 'auto', name: 'Auto', model: 'Airtrohp picks the best available AI' };
 
 /** The AI the user picked ("auto" = let Airtrohp choose). Stored in the browser. */
 export function getSelectedProvider(): string {

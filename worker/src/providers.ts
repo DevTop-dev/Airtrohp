@@ -128,14 +128,14 @@ export interface ProviderInfo {
   model: string; // short description shown in the picker
 }
 
-/** Public Airtrohp model names. The ids sent by the browser are these aliases, never the engine behind them. */
+/** The AIs shown in the model picker. */
 const ALIASES: Array<{ id: string; engine: string; name: string; desc: string }> = [
-  { id: 'smart', engine: 'gemini', name: 'Airtrohp Smart', desc: 'Most capable. Best for hard questions and code' },
-  { id: 'turbo', engine: 'groq', name: 'Airtrohp Turbo', desc: 'Extremely fast answers' },
-  { id: 'swift', engine: 'cerebras', name: 'Airtrohp Swift', desc: 'Fast and balanced' },
-  { id: 'flex', engine: 'openrouter', name: 'Airtrohp Flex', desc: 'Flexible, picks from many models' },
-  { id: 'lite', engine: 'mistral', name: 'Airtrohp Lite', desc: 'Light and efficient for everyday chat' },
-  { id: 'core', engine: 'workers-ai', name: 'Airtrohp Core', desc: 'Always-on backup, no limits to set up' },
+  { id: 'gemini', engine: 'gemini', name: 'Gemini', desc: 'Most capable. Best for hard questions and code' },
+  { id: 'groq', engine: 'groq', name: 'Groq', desc: 'Extremely fast answers' },
+  { id: 'cerebras', engine: 'cerebras', name: 'Cerebras', desc: 'Fast and balanced' },
+  { id: 'openrouter', engine: 'openrouter', name: 'OpenRouter', desc: 'Flexible, picks from many free models' },
+  { id: 'mistral', engine: 'mistral', name: 'Mistral', desc: 'Light and efficient for everyday chat' },
+  { id: 'workers-ai', engine: 'workers-ai', name: 'Cloudflare AI', desc: 'Always-on backup, no key needed' },
 ];
 
 /** Maps a public alias to the internal engine id ("gemini", "groq", ...). Unknown values give undefined. */
