@@ -103,7 +103,7 @@ export function Composer({ streaming, disabled, disabledReason, maxAttachChars, 
         }}
         onDragLeave={() => setDrag(false)}
         onDrop={onDrop}
-        className={`rounded-[28px] border bg-ink-800 transition ${drag ? 'border-ink-100' : 'border-ink-700 focus-within:border-ink-500'}`}
+        className={`rounded-[30px] border bg-ink-800 shadow-soft transition ${drag ? 'border-ink-100' : 'border-ink-700 focus-within:border-ink-500'}`}
       >
         {files.length > 0 && (
           <div className="flex flex-wrap gap-2 border-b border-ink-700 px-3 pb-2 pt-3">

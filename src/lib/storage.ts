@@ -62,7 +62,10 @@ export function firestoreStorage(uid: string): ChatStorage {
               };
             }),
           ),
-        () => cb([]),
+        (err) => {
+          console.error('Could not load conversations', err);
+          cb([]);
+        },
       );
     },
     async create(title, projectId) {

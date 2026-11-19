@@ -11,6 +11,9 @@ export const firebaseConfig = {
   appId: import.meta.env.VITE_FIREBASE_APP_ID,
 };
 
+/** Firestore database ID. Defaults to the named database "default" (set VITE_FIRESTORE_DATABASE_ID=(default) to use the classic one). */
+export const FIRESTORE_DATABASE_ID = (import.meta.env.VITE_FIRESTORE_DATABASE_ID as string | undefined)?.trim() || 'default';
+
 export const isConfigured = Boolean(API_URL && firebaseConfig.apiKey && firebaseConfig.projectId);
 
 /** Names of required build-time variables that are empty. Vite inlines them at build time, so a redeploy is needed after changing them. */

@@ -20,14 +20,24 @@ export default {
           50: '#f4f4f4',
         },
       },
+      // Softer, rounder corners everywhere (each Tailwind step is one notch rounder).
+      borderRadius: {
+        DEFAULT: '0.5rem',
+        sm: '0.5rem',
+        md: '0.75rem',
+        lg: '0.875rem',
+        xl: '1.125rem',
+        '2xl': '1.5rem',
+        '3xl': '2rem',
+      },
       fontFamily: {
         sans: ['Inter', 'ui-sans-serif', 'system-ui', '-apple-system', 'Segoe UI', 'sans-serif'],
         display: ['"Instrument Serif"', 'ui-serif', 'Georgia', 'serif'],
         mono: ['"JetBrains Mono"', 'ui-monospace', 'SFMono-Regular', 'Menlo', 'monospace'],
       },
       boxShadow: {
-        glow: '0 0 0 1px rgba(255,255,255,0.06), 0 20px 60px -20px rgba(0,0,0,0.9)',
-        soft: '0 1px 0 rgba(255,255,255,0.04) inset, 0 8px 30px -12px rgba(0,0,0,0.8)',
+        glow: '0 0 0 1px rgba(255,255,255,0.05), 0 24px 70px -24px rgba(0,0,0,0.95)',
+        soft: '0 1px 0 rgba(255,255,255,0.05) inset, 0 12px 36px -16px rgba(0,0,0,0.85)',
       },
       keyframes: {
         fadeUp: { '0%': { opacity: '0', transform: 'translateY(10px)' }, '100%': { opacity: '1', transform: 'translateY(0)' } },

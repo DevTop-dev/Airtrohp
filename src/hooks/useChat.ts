@@ -167,7 +167,13 @@ export function useChat({ storage, conversationId, onConversationCreated, maxCha
       if (!trimmed && files.length === 0) return;
       let cid = convRef.current;
       if (!cid) {
-        cid = await storage.create(titleFrom(trimmed || files[0].name), projectId);
+        try {
+          cid = await storage.create(titleFrom(trimmed || files[0].name), projectId);
+        } catch (e) {
+          console.error('Could not create conversation', e);
+          setError({ code: 'STORAGE_ERROR', message: 'Your chat could not be saved. Check your connection and try again.' });
+          return;
+        }
         createdRef.current = cid;
         convRef.current = cid;
         onConversationCreated(cid);
