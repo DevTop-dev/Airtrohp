@@ -213,6 +213,7 @@ export async function handleChat(request: Request, env: Env, ctx: Ctx, deps: Cha
       answeredBy = fb.provider;
     }
   }
+  console.log('chat answered by', answeredBy);
   if (!upstream) {
     await refund();
     const why = (geminiError instanceof Error ? `${geminiError.name}: ${geminiError.message}` : String(geminiError)).replace(/\s+/g, ' ').slice(0, 160);
