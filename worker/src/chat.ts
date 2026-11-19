@@ -12,6 +12,7 @@ import {
   type ChatInput,
   type ChatMessageIn,
 } from './gemini';
+import { callFallbackProviders } from './providers';
 import { entitlement, type Store } from './store';
 import type { Counters } from './usage';
 import { HttpError, nextUtcMidnight, enc, sha256Hex, utcDay } from './utils';
@@ -173,21 +174,33 @@ export async function handleChat(request: Request, env: Env, ctx: Ctx, deps: Cha
 
   const refund = () => Promise.all(refundKeys.map((k) => counters.refund(k).catch(() => undefined)));
 
-  // 5. Call Gemini
+  // 5. Call Gemini, then the free fallback providers if Gemini is overloaded or unreachable
   const controller = new AbortController();
-  let upstream: Response;
+  const geminiBody = buildGeminiBody(input);
+  let upstream: Response | undefined;
+  let geminiError: unknown;
   try {
     upstream = await callGeminiResilient(
       env,
       deps.fetch,
       [modelFor(env, tier), env.GEMINI_MODEL_FALLBACK ?? DEFAULT_MODEL_FALLBACK, 'gemini-3.6-flash', 'gemini-3.5-flash-lite', 'gemini-3.1-flash-lite'],
-      buildGeminiBody(input),
+      geminiBody,
       controller.signal,
     );
   } catch (e) {
-    await refund();
+    geminiError = e;
     console.error('Gemini fetch failed', e);
-    const why = (e instanceof Error ? `${e.name}: ${e.message}` : String(e)).replace(/\s+/g, ' ').slice(0, 160);
+  }
+  if (!upstream || !upstream.ok || !upstream.body) {
+    const fb = await callFallbackProviders(env, deps.fetch, geminiBody, controller.signal).catch(() => null);
+    if (fb) {
+      console.log('answered by fallback provider', fb.provider);
+      upstream = fb.response;
+    }
+  }
+  if (!upstream) {
+    await refund();
+    const why = (geminiError instanceof Error ? `${geminiError.name}: ${geminiError.message}` : String(geminiError)).replace(/\s+/g, ' ').slice(0, 160);
     throw new HttpError(502, 'AI_UPSTREAM_ERROR', `The AI service could not be reached. Please try again. (${why})`);
   }
   if (!upstream.ok || !upstream.body) {

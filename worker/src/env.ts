@@ -35,6 +35,11 @@ export interface Env {
   PATREON_CLIENT_ID?: string;
   PATREON_CLIENT_SECRET?: string;
   PATREON_WEBHOOK_SECRET?: string;
+  // Optional free fallback providers (any subset; each is skipped when its key is missing)
+  GROQ_API_KEY?: string;
+  CEREBRAS_API_KEY?: string;
+  OPENROUTER_API_KEY?: string;
+  MISTRAL_API_KEY?: string;
   ADMIN_UIDS?: string; // comma separated Firebase UIDs
   ADMIN_EMAILS?: string; // comma separated, must also be email-verified
 
@@ -43,6 +48,13 @@ export interface Env {
   FIREBASE_PROJECT_ID: string;
   FRONTEND_URL: string;
   ALLOWED_ORIGINS: string; // comma separated
+  GROQ_MODEL?: string;
+  CEREBRAS_MODEL?: string;
+  OPENROUTER_MODEL?: string;
+  MISTRAL_MODEL?: string;
+  WORKERS_AI_MODEL?: string;
+  /** Cloudflare Workers AI binding ([ai] in wrangler.toml): free tier, no API key. */
+  AI?: { run(model: string, input: Record<string, unknown>): Promise<unknown> };
   GEMINI_MODEL?: string;
   GEMINI_MODEL_PRO?: string;
   /** Used when the primary model is overloaded (HTTP 429/500/503/504). */

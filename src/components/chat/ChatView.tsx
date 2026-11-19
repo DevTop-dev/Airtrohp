@@ -18,10 +18,10 @@ import { nextUtcMidnight } from '../../lib/format';
 import { MessageItem } from './MessageItem';
 
 const SUGGESTIONS = [
+  { icon: Sparkles, title: 'Explain something simply', prompt: 'Explain how the stock market works as if I were 12 years old, with a short example.' },
+  { icon: Wand2, title: 'Write for me', prompt: 'Help me write a friendly, professional email asking my landlord to fix the heating. Keep it short.' },
   { icon: Hammer, title: 'Build a Discord bot', prompt: 'Build a Discord.js v14 bot with slash commands for moderation (kick, ban, timeout) and a welcome message. Give me the full project structure and all files.' },
   { icon: Bug, title: 'Debug my code', prompt: 'I will paste an error and the code that causes it. Find the root cause and give me the corrected code.\n\n' },
-  { icon: Wand2, title: 'Create a REST API', prompt: 'Create a REST API with Node.js, Express and TypeScript with JWT authentication, input validation and a clean folder structure.' },
-  { icon: Sparkles, title: 'Refactor and optimize', prompt: 'Review the following code for readability, performance and bugs, then refactor it and explain each change.\n\n' },
 ];
 
 export function ChatView({ conversationId }: { conversationId?: string }) {
@@ -250,7 +250,7 @@ export function ChatView({ conversationId }: { conversationId?: string }) {
               <p className="mt-2 max-w-md text-sm text-ink-300">
                 {guest
                   ? `Start immediately. You have ${quota?.limit ?? 5} free messages, no account required.`
-                  : 'Ask for complete programs, bug fixes, refactors or architecture. Attach files or a ZIP for project-aware help.'}
+                  : 'Ask anything: questions, writing, translation, ideas or code. Attach files or a ZIP for project-aware help.'}
               </p>
             </div>
             {errorBar}

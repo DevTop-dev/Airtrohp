@@ -136,9 +136,9 @@ const STEPS = [
 ];
 
 const FAQ = [
-  { q: 'What is Airtrohp?', a: 'Airtrohp is an AI coding assistant for everyday software work: writing complete programs and websites, debugging, refactoring, explaining code, designing architecture and building Discord bots. It supports the common languages and frameworks, including JavaScript, TypeScript, Python, C, C++, Java, C#, PHP, SQL, Go, Rust, Kotlin, Swift, React, Next.js, Node.js, Vue, Angular, Tailwind, Firebase, Supabase and Cloudflare Workers.' },
+  { q: 'What is Airtrohp?', a: 'Airtrohp is an all-round AI assistant. Ask it anything: explanations, writing, translation, study help, ideas and planning. It is also an expert coder: complete programs and websites, debugging, refactoring, architecture and Discord bots. For code it supports the common languages and frameworks, including JavaScript, TypeScript, Python, C, C++, Java, C#, PHP, SQL, Go, Rust, Kotlin, Swift, React, Next.js, Node.js, Vue, Angular, Tailwind, Firebase, Supabase and Cloudflare Workers.' },
   { q: 'Do I need an account to try it?', a: 'No. Every visitor gets five free messages immediately. The limit is counted on our server using a signed guest session and network-level checks, so a simple refresh does not reset it. After that, create a free account to continue; your guest conversation moves into it.' },
-  { q: 'What do the memberships include?', a: 'Free accounts get basic assistance, conversation history and a daily message allowance. Airtrohp Pro is $9.99 per month and adds higher usage limits, advanced coding assistance and debugging, multi-file project help and early access to new features. An Ultimate tier is being prepared.' },
+  { q: 'What do the memberships include?', a: 'Free accounts get 50 messages a day and conversation history. Airtrohp Pro is $9.99 per month and adds unlimited chat, advanced assistance, multi-file project help and early access to new features. An Ultimate tier is being prepared.' },
   { q: 'How does billing work?', a: 'Memberships are handled through Patreon. You pledge on Patreon, connect your Patreon account to Airtrohp, and our servers verify the membership directly with Patreon. If you cancel or a payment fails, Pro access is removed automatically.' },
   { q: 'Is my code private?', a: 'Your conversations and project files are stored in your own account and are only readable by you. To generate answers, your messages and attachments are sent to Google’s Gemini API through our servers. Do not paste secrets such as passwords or private keys into any AI tool.' },
   { q: 'Can Airtrohp run my code?', a: 'No. Airtrohp reads and writes code but never executes uploaded files. ZIP uploads are filtered and read as text only.' },
@@ -167,7 +167,7 @@ export default function Landing() {
             The AI that writes, debugs and <em className="text-shine not-italic">ships</em> your code.
           </h1>
           <p className="mx-auto mt-7 max-w-2xl animate-fade-up text-base leading-7 text-ink-300 [animation-delay:140ms] sm:text-lg">
-            Airtrohp is a premium coding assistant for complete programs, websites, Discord bots and whole projects. Precise answers, streamed instantly, in the languages you actually use.
+            Airtrohp is your all-round AI assistant: answers, writing, study help, ideas and code. Precise answers, streamed instantly, in the language you speak.
           </p>
           <div className="mt-10 flex animate-fade-up flex-col items-center justify-center gap-3 [animation-delay:200ms] sm:flex-row">
             <Link to="/chat" className="btn-primary !px-7 !py-3.5 text-[15px]">
@@ -288,7 +288,7 @@ export default function Landing() {
         <div className="mx-auto grid max-w-6xl gap-10 px-5 py-14 sm:grid-cols-2 md:grid-cols-4">
           <div className="md:col-span-2">
             <Logo />
-            <p className="mt-4 max-w-xs text-sm leading-6 text-ink-300">The premium AI coding assistant for developers who ship.</p>
+            <p className="mt-4 max-w-xs text-sm leading-6 text-ink-300">The all-round AI assistant for everything you do.</p>
           </div>
           <div>
             <p className="eyebrow mb-4">Product</p>

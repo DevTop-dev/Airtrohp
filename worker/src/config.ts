@@ -22,7 +22,7 @@ const DEFAULT_TIERS: Record<TierId, TierConfig> = {
     model: 'standard',
     enabled: true,
     features: [
-      'Basic AI coding assistance',
+      'AI assistant for anything: questions, writing and code',
       '50 AI messages per day across all chats',
       'Conversation history (kept for 7 days)',
       'File uploads up to 100k characters of context',
@@ -38,7 +38,7 @@ const DEFAULT_TIERS: Record<TierId, TierConfig> = {
     enabled: true,
     features: [
       'Unlimited AI messages (fair-use rate limit applies)',
-      'Advanced coding assistance and debugging',
+      'Advanced assistance and debugging',
       'Multi-file project assistance',
       'Up to 500k characters of project context',
       'Priority access to new features',

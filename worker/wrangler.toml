@@ -40,3 +40,7 @@ class_name = "UsageCounter"
 [[migrations]]
 tag = "v1"
 new_sqlite_classes = ["UsageCounter"]
+
+# Cloudflare Workers AI: a free fallback model that needs no API key.
+[ai]
+binding = "AI"

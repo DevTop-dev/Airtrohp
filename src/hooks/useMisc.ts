@@ -5,7 +5,7 @@ import { PATREON_URL } from '../lib/config';
 
 export function useDocTitle(title?: string) {
   useEffect(() => {
-    document.title = title ? `${title} | Airtrohp` : 'Airtrohp | AI Coding Assistant';
+    document.title = title ? `${title} | Airtrohp` : 'Airtrohp | AI Assistant';
   }, [title]);
 }
 
@@ -15,8 +15,8 @@ export const FALLBACK_CONFIG: PublicConfig = {
   patreonEnabled: false,
   patreonJoinUrl: PATREON_URL,
   tiers: [
-    { id: 'free', name: 'Free', priceUsd: 0, dailyMessages: 50, maxContextChars: 100000, enabled: true, features: ['Basic AI coding assistance', '50 AI messages per day across all chats', 'Conversation history (kept for 7 days)'] },
-    { id: 'pro', name: 'Airtrohp Pro', priceUsd: 9.99, dailyMessages: 100000, maxContextChars: 500000, enabled: true, features: ['Unlimited AI messages (fair-use rate limit applies)', 'Advanced coding assistance', 'Multi-file project assistance', 'Priority access to new features'] },
+    { id: 'free', name: 'Free', priceUsd: 0, dailyMessages: 50, maxContextChars: 100000, enabled: true, features: ['AI assistant for anything: questions, writing and code', '50 AI messages per day across all chats', 'Conversation history (kept for 7 days)'] },
+    { id: 'pro', name: 'Airtrohp Pro', priceUsd: 9.99, dailyMessages: 100000, maxContextChars: 500000, enabled: true, features: ['Unlimited AI messages (fair-use rate limit applies)', 'Advanced assistance', 'Multi-file project assistance', 'Priority access to new features'] },
     { id: 'ultimate', name: 'Airtrohp Ultimate', priceUsd: 0, dailyMessages: 0, maxContextChars: 0, enabled: false, features: ['Coming soon'] },
   ],
 };
