@@ -4,7 +4,7 @@ import { AUTO, getSelectedProvider, setSelectedProvider, useModels, type AiModel
 
 /**
  * Icon for an AI. If you put an image at /public/logos/<id>.svg (or .png) it is shown; otherwise a neutral monogram badge.
- * ids: auto, gemini, groq, cerebras, openrouter, mistral, workers-ai
+ * ids: auto, smart, turbo, swift, flex, lite, core
  */
 export function ModelIcon({ id, name, size = 20 }: { id: string; name: string; size?: number }) {
   const [step, setStep] = useState(0); // 0: svg, 1: png, 2: monogram
@@ -26,7 +26,7 @@ export function ModelIcon({ id, name, size = 20 }: { id: string; name: string; s
       className="inline-flex shrink-0 items-center justify-center rounded-md border border-ink-500 bg-gradient-to-b from-ink-600 to-ink-700 font-semibold leading-none text-ink-50"
       aria-hidden
     >
-      {id === 'auto' ? '✦' : name.charAt(0).toUpperCase()}
+      {id === 'auto' ? '✦' : name.replace('Airtrohp ', '').charAt(0).toUpperCase()}
     </span>
   );
 }
@@ -81,7 +81,7 @@ export function ModelPicker({ disabled }: { disabled?: boolean }) {
           role="listbox"
           className="absolute bottom-full left-0 z-30 mb-2 w-72 max-w-[calc(100vw-2rem)] overflow-hidden rounded-2xl border border-ink-600 bg-ink-850 p-1.5 shadow-glow animate-fade-in"
         >
-          <p className="px-3 pb-1.5 pt-2 text-[11px] font-medium uppercase tracking-[0.18em] text-ink-400">Choose an AI</p>
+          <p className="px-3 pb-1.5 pt-2 text-[11px] font-medium uppercase tracking-[0.18em] text-ink-400">Choose a model</p>
           {all.map((m) => (
             <button
               key={m.id}
@@ -94,7 +94,7 @@ export function ModelPicker({ disabled }: { disabled?: boolean }) {
               <ModelIcon id={m.id} name={m.name} size={26} />
               <span className="min-w-0 flex-1">
                 <span className="block truncate text-sm text-ink-50">{m.name}</span>
-                <span className="block truncate text-xs text-ink-400">{m.id === 'auto' ? 'Airtrohp picks the best available AI' : m.model}</span>
+                <span className="block truncate text-xs text-ink-400">{m.model}</span>
               </span>
               {m.id === current.id && <Check size={16} className="shrink-0 text-ink-100" />}
             </button>

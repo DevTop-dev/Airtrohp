@@ -89,7 +89,7 @@ export interface ChatRequestMessage {
 }
 
 export type StreamEvent =
-  | { type: 'meta'; remaining: number; limit: number; tier: string; provider?: string }
+  | { type: 'meta'; remaining: number; limit: number; tier: string }
   | { type: 'delta'; text: string }
   | { type: 'done'; finishReason: string; usage: { promptTokens: number; outputTokens: number }; remaining: number }
   | { type: 'error'; code: string; message: string; remaining?: number };

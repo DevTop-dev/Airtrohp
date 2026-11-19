@@ -140,7 +140,7 @@ const FAQ = [
   { q: 'Do I need an account to try it?', a: 'No. Every visitor gets five free messages immediately. The limit is counted on our server using a signed guest session and network-level checks, so a simple refresh does not reset it. After that, create a free account to continue; your guest conversation moves into it.' },
   { q: 'What do the memberships include?', a: 'Free accounts get 50 messages a day and conversation history. Airtrohp Pro is $9.99 per month and adds unlimited chat, advanced assistance, multi-file project help and early access to new features. An Ultimate tier is being prepared.' },
   { q: 'How does billing work?', a: 'Memberships are handled through Patreon. You pledge on Patreon, connect your Patreon account to Airtrohp, and our servers verify the membership directly with Patreon. If you cancel or a payment fails, Pro access is removed automatically.' },
-  { q: 'Is my code private?', a: 'Your conversations and project files are stored in your own account and are only readable by you. To generate answers, your messages and attachments are sent to Google’s Gemini API through our servers. Do not paste secrets such as passwords or private keys into any AI tool.' },
+  { q: 'Is my code private?', a: 'Your conversations and project files are stored in your own account and are only readable by you. To generate answers, your messages and attachments are sent through our servers to the third-party AI engines that power Airtrohp. Do not paste secrets such as passwords or private keys into any AI tool.' },
   { q: 'Can Airtrohp run my code?', a: 'No. Airtrohp reads and writes code but never executes uploaded files. ZIP uploads are filtered and read as text only.' },
 ];
 

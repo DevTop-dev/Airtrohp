@@ -123,18 +123,30 @@ async function withDeadline<T>(ms: number, outer: AbortSignal | undefined, run: 
 }
 
 export interface ProviderInfo {
-  id: string;
-  name: string;
-  model: string;
+  id: string; // public alias, e.g. "turbo"
+  name: string; // Airtrohp-branded display name
+  model: string; // short description shown in the picker
+}
+
+/** Public Airtrohp model names. The ids sent by the browser are these aliases, never the engine behind them. */
+const ALIASES: Array<{ id: string; engine: string; name: string; desc: string }> = [
+  { id: 'smart', engine: 'gemini', name: 'Airtrohp Smart', desc: 'Most capable. Best for hard questions and code' },
+  { id: 'turbo', engine: 'groq', name: 'Airtrohp Turbo', desc: 'Extremely fast answers' },
+  { id: 'swift', engine: 'cerebras', name: 'Airtrohp Swift', desc: 'Fast and balanced' },
+  { id: 'flex', engine: 'openrouter', name: 'Airtrohp Flex', desc: 'Flexible, picks from many models' },
+  { id: 'lite', engine: 'mistral', name: 'Airtrohp Lite', desc: 'Light and efficient for everyday chat' },
+  { id: 'core', engine: 'workers-ai', name: 'Airtrohp Core', desc: 'Always-on backup, no limits to set up' },
+];
+
+/** Maps a public alias to the internal engine id ("gemini", "groq", ...). Unknown values give undefined. */
+export function engineFor(alias: string | undefined): string | undefined {
+  return ALIASES.find((a) => a.id === alias)?.engine;
 }
 
 /** Every AI the user can pick from: Gemini plus each free provider that is configured. */
 export function listProviders(env: Env): ProviderInfo[] {
-  const out: ProviderInfo[] = [{ id: 'gemini', name: 'Gemini', model: env.GEMINI_MODEL ?? 'gemini-3.5-flash-lite' }];
-  const labels: Record<string, string> = { groq: 'Groq', cerebras: 'Cerebras', openrouter: 'OpenRouter', mistral: 'Mistral' };
-  for (const p of openAiProviders(env)) if (p.key) out.push({ id: p.name, name: labels[p.name] ?? p.name, model: p.model });
-  if (env.AI) out.push({ id: 'workers-ai', name: 'Cloudflare AI', model: env.WORKERS_AI_MODEL ?? WORKERS_AI_MODEL });
-  return out;
+  const active = new Set<string>(['gemini', ...availableFallbacks(env)]);
+  return ALIASES.filter((a) => active.has(a.engine)).map((a) => ({ id: a.id, name: a.name, model: a.desc }));
 }
 
 /** Names of the fallback providers that are currently usable (for diagnostics). */

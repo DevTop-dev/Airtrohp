@@ -12,7 +12,7 @@ import {
   type ChatInput,
   type ChatMessageIn,
 } from './gemini';
-import { callFallbackProviders, listProviders } from './providers';
+import { callFallbackProviders, engineFor, listProviders } from './providers';
 import { entitlement, type Store } from './store';
 import type { Counters } from './usage';
 import { HttpError, nextUtcMidnight, enc, sha256Hex, utcDay } from './utils';
@@ -182,7 +182,8 @@ export async function handleChat(request: Request, env: Env, ctx: Ctx, deps: Cha
   let geminiError: unknown;
   let answeredBy = 'gemini';
   // If the user picked a specific non-Gemini AI that is available, try it first.
-  const picked = input.provider && input.provider !== 'auto' && input.provider !== 'gemini' && listProviders(env).some((p) => p.id === input.provider) ? input.provider : undefined;
+  const wanted = engineFor(input.provider);
+  const picked = wanted && wanted !== 'gemini' && listProviders(env).some((p) => p.id === input.provider) ? wanted : undefined;
   if (picked) {
     const first = await callFallbackProviders(env, deps.fetch, geminiBody, controller.signal, picked).catch(() => null);
     if (first) {
@@ -252,7 +253,7 @@ export async function handleChat(request: Request, env: Env, ctx: Ctx, deps: Cha
       let finish: string | undefined;
       let blocked: string | undefined;
       try {
-        send({ type: 'meta', provider: answeredBy, remaining, limit: quotaLimit, tier: principal.kind === 'guest' ? 'guest' : tier.id });
+        send({ type: 'meta', remaining, limit: quotaLimit, tier: principal.kind === 'guest' ? 'guest' : tier.id });
         while (true) {
           const { done, value } = await reader.read();
           if (done) break;
