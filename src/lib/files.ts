@@ -116,7 +116,7 @@ async function compressImage(file: File): Promise<{ data: string; size: number }
     for (const q of [0.78, 0.65, 0.5, 0.38]) {
       const blob: Blob | null = await new Promise((r) => canvas.toBlob(r, 'image/jpeg', q));
       if (!blob) return null;
-      if (blob.size <= 260_000 || q === 0.38) {
+      if (blob.size <= 200_000 || q === 0.38) {
         const buf = new Uint8Array(await blob.arrayBuffer());
         let bin = '';
         for (let i = 0; i < buf.length; i += 0x8000) bin += String.fromCharCode(...buf.subarray(i, i + 0x8000));
@@ -129,7 +129,7 @@ async function compressImage(file: File): Promise<{ data: string; size: number }
   return null;
 }
 
-export const MAX_IMAGES = 4;
+export const MAX_IMAGES = 3;
 
 export async function readFiles(list: File[]): Promise<ReadResult> {
   const out: ReadResult = { files: [], skipped: [] };
