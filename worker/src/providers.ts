@@ -19,7 +19,7 @@ interface OpenAiProvider {
   extraHeaders?: Record<string, string>;
 }
 
-const FIRST_BYTE_TIMEOUT_MS = 15_000;
+const FIRST_BYTE_TIMEOUT_MS = 6_000;
 const enc = new TextEncoder();
 
 export const WORKERS_AI_MODEL = '@cf/meta/llama-3.3-70b-instruct-fp8-fast';
@@ -164,14 +164,14 @@ export async function callFallbackProviders(
   fetcher: typeof fetch,
   body: unknown,
   signal?: AbortSignal,
-  only?: string,
+  only?: string | string[],
 ): Promise<{ response: Response; provider: string } | null> {
   const messages = toMessages(body as GeminiBodyLike);
   if (!messages.some((m) => m.role === 'user')) return null;
 
   for (const p of openAiProviders(env)) {
     if (!p.key || signal?.aborted) continue;
-    if (only && p.name !== only) continue;
+    if (only && ![only].flat().includes(p.name)) continue;
     try {
       const res = await withDeadline(FIRST_BYTE_TIMEOUT_MS, signal, (s) =>
         fetcher(p.url, {
@@ -188,7 +188,7 @@ export async function callFallbackProviders(
     }
   }
 
-  if (env.AI && !signal?.aborted && (!only || only === 'workers-ai')) {
+  if (env.AI && !signal?.aborted && (!only || [only].flat().includes('workers-ai'))) {
     try {
       const out = await withDeadline(FIRST_BYTE_TIMEOUT_MS, signal, () =>
         (env.AI as NonNullable<Env['AI']>).run(env.WORKERS_AI_MODEL ?? WORKERS_AI_MODEL, { messages, stream: true, max_tokens: 4096 }),

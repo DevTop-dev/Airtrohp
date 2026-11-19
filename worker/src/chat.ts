@@ -183,7 +183,11 @@ export async function handleChat(request: Request, env: Env, ctx: Ctx, deps: Cha
   let answeredBy = 'gemini';
   // If the user picked a specific non-Gemini AI that is available, try it first.
   const wanted = engineFor(input.provider);
-  const picked = wanted && wanted !== 'gemini' && listProviders(env).some((p) => p.id === input.provider) ? wanted : undefined;
+  const userPick = wanted && wanted !== 'gemini' && listProviders(env).some((p) => p.id === input.provider) ? wanted : undefined;
+  // "Auto" (or Smart): when very fast providers are configured, try them first for the quickest first token.
+  const wantsGemini = wanted === 'gemini';
+  const fastFirst = !wantsGemini && !userPick ? ['groq', 'cerebras'] : undefined;
+  const picked: string | string[] | undefined = userPick ?? fastFirst;
   if (picked) {
     const first = await callFallbackProviders(env, deps.fetch, geminiBody, controller.signal, picked).catch(() => null);
     if (first) {
@@ -196,7 +200,7 @@ export async function handleChat(request: Request, env: Env, ctx: Ctx, deps: Cha
       upstream = await callGeminiResilient(
         env,
         deps.fetch,
-        [modelFor(env, tier), env.GEMINI_MODEL_FALLBACK ?? DEFAULT_MODEL_FALLBACK, 'gemini-3.6-flash', 'gemini-3.5-flash-lite', 'gemini-3.1-flash-lite'],
+        [modelFor(env, tier), env.GEMINI_MODEL_FALLBACK ?? DEFAULT_MODEL_FALLBACK, 'gemini-3.6-flash'],
         geminiBody,
         controller.signal,
       );

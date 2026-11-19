@@ -135,7 +135,7 @@ export function parseGeminiEvent(data: string): GeminiChunk | null {
 
 const RETRYABLE = new Set([429, 500, 503, 504]);
 /** How long Gemini may take to start answering before we give up on that attempt. */
-const FIRST_BYTE_TIMEOUT_MS = 20_000;
+const FIRST_BYTE_TIMEOUT_MS = 7_000;
 
 function withoutThinking(body: unknown): unknown {
   const b = body as { generationConfig?: Record<string, unknown> };
@@ -176,8 +176,11 @@ export async function callGeminiResilient(
   let current = body;
   let last: Response | undefined;
   let lastError: unknown;
+  const startedAt = Date.now();
   for (const model of unique) {
-    for (let attempt = 0; attempt < 2; attempt++) {
+    // Total time budget: after ~12s without an answer, give up on Gemini so a faster fallback can take over.
+    if (last || lastError) if (Date.now() - startedAt > 12_000) break;
+    for (let attempt = 0; attempt < (model === unique[0] ? 2 : 1); attempt++) {
       if (signal?.aborted) throw new Error('aborted');
       if (last) await last.body?.cancel().catch(() => undefined);
       last = undefined;
