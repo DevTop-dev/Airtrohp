@@ -8,6 +8,7 @@ import { useStorage } from '../../context/StorageContext';
 import { useToast } from '../../context/ToastContext';
 import type { ConversationMeta } from '../../lib/types';
 import { PATREON_URL, RETENTION_DAYS } from '../../lib/config';
+import { InstallApp } from '../InstallApp';
 
 function ConversationItem({ c, active, onNavigate }: { c: ConversationMeta; active: boolean; onNavigate: () => void }) {
   const { storage } = useStorage();
@@ -112,6 +113,10 @@ export function Sidebar({ onNavigate }: { onNavigate: () => void }) {
             ))}
           </div>
         )}
+      </div>
+
+      <div className="px-3 pb-2">
+        <InstallApp />
       </div>
 
       {signedIn && me && me.tier === 'free' && (

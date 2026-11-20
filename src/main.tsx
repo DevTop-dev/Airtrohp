@@ -21,3 +21,10 @@ async function start() {
 }
 
 void start();
+
+// Makes Airtrohp installable as an app (PWA). Only in production builds.
+if ('serviceWorker' in navigator && import.meta.env.PROD) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js').catch(() => undefined);
+  });
+}

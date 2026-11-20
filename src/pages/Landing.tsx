@@ -22,6 +22,7 @@ import { PlanCards } from '../components/ui/PlanCards';
 import { useAuth } from '../context/AuthContext';
 import { useDocTitle, usePublicConfig } from '../hooks/useMisc';
 import { PATREON_URL } from '../lib/config';
+import { InstallApp } from '../components/InstallApp';
 
 function Navbar() {
   const { user } = useAuth();
@@ -42,6 +43,7 @@ function Navbar() {
           ))}
         </nav>
         <div className="hidden items-center gap-2 md:flex">
+          <InstallApp className="btn-ghost btn-sm gap-1.5" />
           {user ? (
             <Link to="/chat" className="btn-primary btn-sm">Open Airtrohp <ArrowRight size={14} /></Link>
           ) : (
@@ -69,6 +71,7 @@ function Navbar() {
                 <Link to="/login" className="btn-secondary">Log in</Link>
               </>
             )}
+            <InstallApp className="btn-secondary gap-2" />
           </div>
         </div>
       )}
